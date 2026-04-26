@@ -2,6 +2,7 @@ import * as Phaser from "phaser";
 import { TEXTURES } from "../assets/placeholders";
 import { Boss, BOSS_SPECS, type BossSpec } from "../characters/Boss";
 import { Hope, HOPE_CONFIG } from "../characters/Hope";
+import { bgm } from "../audio/bgm";
 import { sfx } from "../audio/sfx";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
 
@@ -61,6 +62,8 @@ export class StageScene extends Phaser.Scene {
   create(): void {
     const stageCfg = STAGE_CONFIG[this.currentStage];
     const spec = BOSS_SPECS[stageCfg.bossKey];
+
+    bgm.play(this.currentStage === 1 ? "stage1" : "stage2");
 
     this.physics.world.gravity.y = 1100;
 

@@ -1,5 +1,6 @@
 import * as Phaser from "phaser";
 import { DONATION } from "@/lib/donation";
+import { bgm } from "../audio/bgm";
 import { sfx } from "../audio/sfx";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
 
@@ -12,7 +13,13 @@ export class MainMenuScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     const cy = GAME_HEIGHT / 2;
 
-    this.input.once("pointerdown", () => sfx.unlock());
+    this.input.once("pointerdown", () => {
+      sfx.unlock();
+      bgm.play("menu");
+    });
+    // Po powrocie z innej sceny AudioContext jest już odblokowany — wznowi
+    // BGM od razu. Przy pierwszym wejściu poczeka na pointerdown wyżej.
+    bgm.play("menu");
 
     const bg = this.add.graphics();
     bg.fillGradientStyle(0x1e1b4b, 0x1e1b4b, 0x0f0a1f, 0x0f0a1f, 1);
