@@ -2,6 +2,7 @@ import * as Phaser from "phaser";
 
 export const TEXTURES = {
   hope: "hope-placeholder",
+  brave: "brave-placeholder",
   stress: "stress-placeholder",
   darkness: "darkness-placeholder",
   ground: "ground-placeholder",
@@ -30,6 +31,33 @@ export function createPlaceholderTextures(scene: Phaser.Scene): void {
     g.lineStyle(3, 0x1e1b4b);
     g.strokeRoundedRect(0, 0, 96, 144, 10);
     g.generateTexture(TEXTURES.hope, 96, 144);
+    g.destroy();
+  }
+
+  if (!scene.textures.exists(TEXTURES.brave)) {
+    const g = scene.make.graphics({ x: 0, y: 0 });
+    g.fillStyle(0xdc2626);
+    g.fillRoundedRect(0, 0, 96, 144, 10);
+    g.fillStyle(0xfecaca);
+    g.fillCircle(48, 36, 22);
+    g.fillStyle(0x1e1b4b);
+    g.fillCircle(40, 32, 4);
+    g.fillCircle(56, 32, 4);
+    g.lineStyle(3, 0x1e1b4b);
+    g.beginPath();
+    g.arc(48, 44, 8, 0.2, Math.PI - 0.2);
+    g.strokePath();
+    // Tarcza na piersi
+    g.fillStyle(0xfde047);
+    g.fillCircle(48, 90, 18);
+    g.fillStyle(0xdc2626);
+    g.fillRect(46, 76, 4, 28);
+    g.fillRect(34, 88, 28, 4);
+    g.fillStyle(0x1e1b4b);
+    g.fillRect(40, 110, 16, 30);
+    g.lineStyle(3, 0x1e1b4b);
+    g.strokeRoundedRect(0, 0, 96, 144, 10);
+    g.generateTexture(TEXTURES.brave, 96, 144);
     g.destroy();
   }
 

@@ -59,8 +59,11 @@ export class MainMenuScene extends Phaser.Scene {
         this.scene.start("StorySelectScene");
       });
     });
-    this.makeButton(cx, buttonY + buttonGap, "   TRAINING (wkrótce)", () => {
-      this.cameras.main.flash(150, 167, 139, 250);
+    this.makeButton(cx, buttonY + buttonGap, "♥♥  CO-OP (2 graczy)", () => {
+      this.cameras.main.fade(250, 15, 10, 31);
+      this.cameras.main.once("camerafadeoutcomplete", () => {
+        this.scene.start("CoopScene");
+      });
     });
     this.makeButton(cx, buttonY + 2 * buttonGap, "♥  WESPRZYJ AKCJĘ", () => {
       window.open(DONATION.url, "_blank", "noopener,noreferrer");
