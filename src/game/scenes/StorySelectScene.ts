@@ -56,6 +56,14 @@ const ROSTER: CharacterCard[] = [
     accent: "magenta",
     description: "Szarża z tarczą. (wkrótce)",
   },
+  {
+    key: "wise",
+    name: "DR. MEDRZEC",
+    role: "HERO · 03",
+    unlocked: true,
+    accent: "cyan",
+    description: "Leczące fale. Cyan różdżka uzdrawiająca.",
+  },
 ];
 
 export class StorySelectScene extends Phaser.Scene {
@@ -323,12 +331,20 @@ export class StorySelectScene extends Phaser.Scene {
     portraitY: number,
     accent: AccentPalette,
   ): Phaser.GameObjects.GameObject {
-    if (card.key === "hope" && this.textures.exists(SPRITES.hope)) {
-      const sprite = this.add.sprite(0, portraitY + 8, SPRITES.hope, 0);
+    const heroSprites: Partial<
+      Record<CharacterKey, { texture: string; anim: string }>
+    > = {
+      hope: { texture: SPRITES.hope, anim: "hope-idle" },
+      brave: { texture: SPRITES.brave, anim: "brave-idle" },
+      wise: { texture: SPRITES.wise, anim: "wise-idle" },
+    };
+    const heroSprite = heroSprites[card.key];
+    if (heroSprite && this.textures.exists(heroSprite.texture)) {
+      const sprite = this.add.sprite(0, portraitY + 8, heroSprite.texture, 0);
       sprite.setOrigin(0.5);
       sprite.setScale(1.1);
-      if (this.anims.exists("hope-idle")) {
-        sprite.play("hope-idle");
+      if (this.anims.exists(heroSprite.anim)) {
+        sprite.play(heroSprite.anim);
       }
       return sprite;
     }

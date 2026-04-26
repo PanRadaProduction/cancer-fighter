@@ -1,9 +1,10 @@
 import * as Phaser from "phaser";
 import { TEXTURES } from "../assets/placeholders";
+import { SPRITES } from "../scenes/BootScene";
 import { PlayerCharacter, type PlayerConfig } from "./PlayerCharacter";
 
 export const BRAVE_CONFIG: PlayerConfig = {
-  textureKey: TEXTURES.brave,
+  textureKey: SPRITES.brave,
   speed: 210,
   jumpVelocity: -520,
   maxHp: 130,
@@ -19,11 +20,21 @@ export const BRAVE_CONFIG: PlayerConfig = {
   bodyOffsetY: 4,
   displayWidth: 96,
   displayHeight: 144,
+  idleAnimKey: "brave-idle",
+  lightAnimKey: "brave-light",
+  heavyAnimKey: "brave-heavy",
 };
 
 export class Brave extends PlayerCharacter {
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, BRAVE_CONFIG);
+    const config = scene.textures.exists(SPRITES.brave)
+      ? BRAVE_CONFIG
+      : {
+          ...BRAVE_CONFIG,
+          textureKey: TEXTURES.brave,
+          idleAnimKey: undefined,
+        };
+    super(scene, x, y, config);
   }
 
   get displayName(): string {

@@ -25,11 +25,21 @@ BACKGROUND — strict requirement:
 - The boss itself MUST NOT contain any magenta (#ff00ff) pixels — avoid pink/magenta in clothing, eyes, aura, weapons
 - Use deep purple, blood red, charcoal black, off-white — NEVER magenta or hot pink
 
+EDGE QUALITY — strict requirement (CRITICAL):
+- HARD 1-pixel boundary between boss pixels and magenta background
+- NO anti-aliasing, NO soft edges, NO semi-transparent pixels at the silhouette
+- NO pink/rose/light-magenta halo around the boss — clean sharp outline only
+- Every pixel is EITHER fully opaque boss color OR exact pure magenta #ff00ff (255,0,255)
+- All flame aura / red glow effects are stylized as solid pixel blocks INSIDE or directly adjacent to the silhouette — they must NOT bleed into the magenta background as gradients
+- Purple robe must be DEEP purple (#6d28d9), red eyes must be saturated blood red (#ff5555) — keep all reds far from magenta hue
+- ABSOLUTELY NO frame separator lines, NO vertical dividers, NO column borders, NO grid lines, NO gutters between the 4 frames — every column of pixels is either fully magenta background OR fully part of one of the 4 boss sprites. The 4 frames are placed flush against each other with NO visible boundary.
+
 BOSS CHARACTER — same in every frame:
 - Towering humanoid tyrant figure, broad shoulders, hunched menacing posture
 - Deep royal purple robe (#6d28d9 family) with black charcoal armored shoulder pauldrons studded with sharp red spikes (#ff5555)
 - Glowing blood-red eyes burning under a dark hood, no visible mouth (or fanged grin half hidden)
 - Large clawed hands, dark gauntlets, swirling deep red flame aura licking off his shoulders (NOT pink)
+- LEGS — strict requirement: the purple robe ends ABOVE the ankles, exposing dark armored greaves and heavy black metal boots clearly visible beneath the robe hem. Two visible legs standing apart in a stable wide stance. NO floating/levitation, NO body just dissolving into mist at the bottom — the boss is firmly grounded on TWO armored boots in EVERY frame.
 - 16-bit SNES era pixel art style (Final Fight bosses / Castlevania / Demon's Crest)
 - Sharp visible pixels, NO antialiasing, limited color palette
 - Full body, frontal view, boss centered horizontally and vertically in each frame

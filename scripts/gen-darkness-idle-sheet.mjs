@@ -25,6 +25,15 @@ BACKGROUND — strict requirement:
 - The boss itself MUST NOT contain any magenta (#ff00ff) pixels — avoid pink/magenta in clothing, eyes, aura, hair
 - Use deep charcoal, jet black, lavender violet, pale icy white — NEVER magenta or hot pink
 
+EDGE QUALITY — strict requirement (CRITICAL):
+- HARD 1-pixel boundary between boss pixels and magenta background
+- NO anti-aliasing, NO soft edges, NO semi-transparent pixels at the silhouette
+- NO pink/rose/light-magenta halo around the boss — clean sharp outline only
+- Every pixel is EITHER fully opaque boss color OR exact pure magenta #ff00ff (255,0,255)
+- All shadow magic wisps and pale violet starlight are stylized as solid pixel blocks INSIDE or directly adjacent to the silhouette — they must NOT bleed into the magenta background as gradients or transparent pixels
+- Lavender violet (#c4b5fd) and pale white-violet hair must stay in BLUE-violet range, never drifting toward red-violet or pink — keep visually distinct from magenta
+- ABSOLUTELY NO frame separator lines, NO vertical dividers, NO horizontal dividers, NO column borders, NO row borders, NO grid lines, NO gutters, NO baseline below the figures — every column and every row of pixels is either fully magenta background OR fully part of one of the 4 boss sprites. The 4 frames are placed flush against each other with NO visible boundary, and there is NO line at the bottom of the sheet.
+
 BOSS CHARACTER — same in every frame:
 - Tall slender ghostly female sorceress, ethereal posture, floating slightly above ground
 - Long flowing jet-black gown with charcoal mist trailing from the hem (#1f2937 / #000000), pale lavender gloves

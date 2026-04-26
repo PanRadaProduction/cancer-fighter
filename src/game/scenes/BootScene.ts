@@ -27,12 +27,12 @@ export class BootScene extends Phaser.Scene {
     this.load.spritesheet(SPRITES.brave, "/sprites/brave-idle.png", {
       frameWidth: HERO_FRAME.width,
       frameHeight: HERO_FRAME.height,
-      endFrame: 3,
+      endFrame: 4,
     });
     this.load.spritesheet(SPRITES.wise, "/sprites/wise-idle.png", {
       frameWidth: HERO_FRAME.width,
       frameHeight: HERO_FRAME.height,
-      endFrame: 3,
+      endFrame: 4,
     });
     this.load.spritesheet(SPRITES.stress, "/sprites/stress-idle.png", {
       frameWidth: BOSS_FRAME.width,
@@ -72,8 +72,54 @@ export class BootScene extends Phaser.Scene {
       });
     }
 
-    this.registerIdle("brave-idle", SPRITES.brave);
-    this.registerIdle("wise-idle", SPRITES.wise);
+    if (this.textures.exists(SPRITES.brave)) {
+      this.anims.create({
+        key: "brave-idle",
+        frames: [
+          { key: SPRITES.brave, frame: 0 },
+          { key: SPRITES.brave, frame: 2 },
+          { key: SPRITES.brave, frame: 3 },
+        ],
+        frameRate: 4,
+        repeat: -1,
+      });
+      this.anims.create({
+        key: "brave-light",
+        frames: [{ key: SPRITES.brave, frame: 1 }],
+        frameRate: 5,
+        repeat: 0,
+      });
+      this.anims.create({
+        key: "brave-heavy",
+        frames: [{ key: SPRITES.brave, frame: 4 }],
+        frameRate: 4,
+        repeat: 0,
+      });
+    }
+    if (this.textures.exists(SPRITES.wise)) {
+      this.anims.create({
+        key: "wise-idle",
+        frames: [
+          { key: SPRITES.wise, frame: 0 },
+          { key: SPRITES.wise, frame: 2 },
+          { key: SPRITES.wise, frame: 3 },
+        ],
+        frameRate: 4,
+        repeat: -1,
+      });
+      this.anims.create({
+        key: "wise-light",
+        frames: [{ key: SPRITES.wise, frame: 1 }],
+        frameRate: 5,
+        repeat: 0,
+      });
+      this.anims.create({
+        key: "wise-heavy",
+        frames: [{ key: SPRITES.wise, frame: 4 }],
+        frameRate: 4,
+        repeat: 0,
+      });
+    }
     this.registerIdle("stress-idle", SPRITES.stress);
     this.registerIdle("darkness-idle", SPRITES.darkness);
 

@@ -24,10 +24,19 @@ BACKGROUND — strict requirement:
 - The character itself MUST NOT contain any magenta (#ff00ff) pixels — avoid pink/magenta in hair, skin, clothing, eyes, accessories, aura
 - Use crimson red, golden yellow, ivory white, dark navy — NEVER magenta or hot pink
 
+EDGE QUALITY — strict requirement (CRITICAL):
+- HARD 1-pixel boundary between character pixels and magenta background
+- NO anti-aliasing, NO soft edges, NO semi-transparent pixels at the silhouette
+- NO red, dark-red, crimson, or pink halo or outline OUTSIDE the body silhouette — every pixel just outside the body must be pure magenta #ff00ff
+- NO drop-shadow, NO mist, NO outer-glow, NO particle aura, NO sparkles around the figure
+- Every pixel is EITHER fully opaque character color OR exact pure magenta #ff00ff (255,0,255)
+- All character details (tunic, hair, shield) live STRICTLY inside the silhouette
+- The character's red tunic must be deep crimson, NOT pink — keep red channel saturated so it cannot be confused with magenta
+
 CHARACTER — same in every frame:
 - Heroic boy age 11-13, brave determined expression, strong jawline, short messy dark hair
 - Crimson red tunic (#dc2626 family), golden round shield (#fde047) with bright cross emblem strapped to left arm, white sash, dark navy boots
-- Subtle red battle aura around his body (warm crimson, NOT pink)
+- NO aura, NO outer glow, NO red mist around the character — the body silhouette ends in clean pixels with the magenta background immediately adjacent
 - 16-bit SNES era pixel art style (Street Fighter II / Final Fight Cody / Captain Tsubasa)
 - Sharp visible pixels, NO antialiasing, limited color palette
 - Full body, frontal view, character centered vertically in each frame

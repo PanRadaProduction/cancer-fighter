@@ -3,6 +3,7 @@ import * as Phaser from "phaser";
 export const TEXTURES = {
   hope: "hope-placeholder",
   brave: "brave-placeholder",
+  wise: "wise-placeholder",
   stress: "stress-placeholder",
   darkness: "darkness-placeholder",
   ground: "ground-placeholder",
@@ -58,6 +59,34 @@ export function createPlaceholderTextures(scene: Phaser.Scene): void {
     g.lineStyle(3, 0x1e1b4b);
     g.strokeRoundedRect(0, 0, 96, 144, 10);
     g.generateTexture(TEXTURES.brave, 96, 144);
+    g.destroy();
+  }
+
+  if (!scene.textures.exists(TEXTURES.wise)) {
+    const g = scene.make.graphics({ x: 0, y: 0 });
+    g.fillStyle(0xffffff);
+    g.fillRoundedRect(0, 0, 96, 144, 10);
+    g.fillStyle(0xfde68a);
+    g.fillCircle(48, 36, 22);
+    g.fillStyle(0xe5e7eb);
+    g.fillRect(34, 24, 28, 6);
+    g.fillStyle(0x1e1b4b);
+    g.fillCircle(40, 32, 4);
+    g.fillCircle(56, 32, 4);
+    g.lineStyle(2, 0x6df6ff);
+    g.strokeCircle(40, 32, 7);
+    g.strokeCircle(56, 32, 7);
+    g.lineStyle(2, 0x6df6ff);
+    g.strokeRect(15, 80, 66, 50);
+    g.fillStyle(0x6df6ff);
+    g.fillRect(70, 70, 4, 50);
+    g.fillStyle(0xa5f3fc);
+    g.fillCircle(72, 70, 5);
+    g.fillStyle(0x1e3a8a);
+    g.fillRect(38, 110, 20, 30);
+    g.lineStyle(3, 0x1e3a8a);
+    g.strokeRoundedRect(0, 0, 96, 144, 10);
+    g.generateTexture(TEXTURES.wise, 96, 144);
     g.destroy();
   }
 

@@ -24,20 +24,32 @@ BACKGROUND — strict requirement:
 - The character itself MUST NOT contain any magenta (#ff00ff) pixels — avoid pink/magenta in hair, skin, clothing, eyes, accessories, aura
 - Use ivory white, cyan blue, silver gray, dark navy — NEVER magenta or hot pink
 
+EDGE QUALITY — strict requirement (CRITICAL):
+- HARD 1-pixel boundary between character pixels and magenta background
+- NO anti-aliasing, NO soft edges, NO semi-transparent pixels at the silhouette
+- NO pink/rose/light-magenta halo around the character — clean sharp outline only
+- Every pixel is EITHER fully opaque character color OR exact pure magenta #ff00ff (255,0,255)
+- All glow/aura/sparkles are stylized as solid pixel blocks INSIDE the silhouette — they must NOT bleed into the magenta background as gradients or transparent pixels
+- Cyan healing wand glow must be saturated cyan (#6df6ff), never desaturated toward pink
+
 CHARACTER — same in every frame:
 - Kind elderly healer / scientist age 55-65, warm grandfatherly smile, round wire-frame glasses, short trim white beard
-- Long ivory white doctor's coat (#ffffff family) with cyan trim cuffs (#6df6ff), dark navy slacks, cyan healing wand held in right hand at hip level
+- Long ivory white doctor's coat (#ffffff family) with cyan trim cuffs (#6df6ff), dark navy slacks, cyan healing wand held in RIGHT hand at hip level
+- CRITICAL: the cyan healing wand MUST be visible in the right hand in EVERY single frame — never dropped, never hidden, never replaced with another object. Same wand, same right hand, same hip-level grip in all 4 frames.
+- CRITICAL: NO potions, NO bottles, NO flasks, NO test tubes, NO additional props — ONLY the cyan wand. The character is standing upright in EVERY frame (never sitting, never crouching, never kneeling).
 - Soft cyan healing aura around his body (NOT pink), small floating sparkles of cyan light near the wand tip
 - 16-bit SNES era pixel art style (Phantasy Star IV / Chrono Trigger / Lufia II)
 - Sharp visible pixels, NO antialiasing, limited color palette
 - Full body, frontal view, character centered vertically in each frame
 - Inspired by: Wren / Hahn (Phantasy Star), Doc Brown, Dr. Light (Mega Man), Tellah (FF IV)
 
-FRAMES — left to right:
+FRAMES — left to right (ALL 4 frames show the character STANDING UPRIGHT, holding the cyan wand in the right hand at hip level — only tiny pose deltas):
 - Frame 1 (leftmost): base idle stance, wand pointing down at hip, lab coat tails hanging neutral, eyes fully open behind glasses
-- Frame 2: subtle inhale — chest expanded by ~2 pixels, lab coat tails raised slightly, wand tip glowing brighter cyan, eyes fully open
-- Frame 3: base stance again, eyes mid-blink (eyelids halfway closed), wand neutral
-- Frame 4 (rightmost): subtle exhale — chest compressed by ~2 pixels, lab coat tails lowered slightly, wand tilted down by ~1 pixel, eyes fully open
+- Frame 2: subtle inhale — chest expanded by ~2 pixels, lab coat tails raised slightly, wand tip glowing brighter cyan, eyes fully open. Wand still in right hand.
+- Frame 3: base stance again, eyes mid-blink (eyelids halfway closed), wand neutral. Wand still in right hand.
+- Frame 4 (rightmost): subtle exhale — chest compressed by ~2 pixels, lab coat tails lowered slightly, wand tilted down by ~1 pixel, eyes fully open. Wand still in right hand.
+
+REPEAT: every frame shows a standing elderly doctor holding a cyan wand. No sitting, no extra props.
 
 Charitable context: this character represents Wisdom and healing in a game supporting children fighting cancer. He must look gentle, intelligent, reassuring — never intimidating. Convey "we have a plan, you are safe with me" energy.
 

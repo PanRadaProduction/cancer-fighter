@@ -1,4 +1,5 @@
 import * as Phaser from "phaser";
+import { TEXTURES } from "../assets/placeholders";
 import { SPRITES } from "../scenes/BootScene";
 import { PlayerCharacter, type PlayerConfig } from "./PlayerCharacter";
 
@@ -20,11 +21,20 @@ export const WISE_CONFIG: PlayerConfig = {
   displayWidth: 96,
   displayHeight: 144,
   idleAnimKey: "wise-idle",
+  lightAnimKey: "wise-light",
+  heavyAnimKey: "wise-heavy",
 };
 
 export class Wise extends PlayerCharacter {
   constructor(scene: Phaser.Scene, x: number, y: number) {
-    super(scene, x, y, WISE_CONFIG);
+    const config = scene.textures.exists(SPRITES.wise)
+      ? WISE_CONFIG
+      : {
+          ...WISE_CONFIG,
+          textureKey: TEXTURES.wise,
+          idleAnimKey: undefined,
+        };
+    super(scene, x, y, config);
   }
 
   get displayName(): string {

@@ -11,7 +11,7 @@ const SHEET_H = FRAME_H;
 const KEY_R = 255;
 const KEY_G = 0;
 const KEY_B = 255;
-const COLOR_DISTANCE_THRESHOLD = 60;
+const COLOR_DISTANCE_THRESHOLD = 120;
 
 const inputPath = path.resolve("public/sprites/.tmp/darkness-idle-raw.png");
 const outputPath = path.resolve("public/sprites/darkness-idle.png");
@@ -37,6 +37,31 @@ for (let i = 0; i < data.length; i += 4) {
   }
 }
 console.log(`Keyed ${keyedPixels} magenta pixels to alpha (${((keyedPixels / (info.width * info.height)) * 100).toFixed(1)}%)`);
+
+// Drugi pass: wyzeruj alpha dla bardzo ciemnych pikseli (separator lines, edge artifacts)
+let darkKeyed = 0;
+for (let i = 0; i < data.length; i += 4) {
+  if (data[i + 3] === 0) continue;
+  const r = data[i], g = data[i + 1], b = data[i + 2];
+  if (r < 40 && g < 40 && b < 40) {
+    data[i + 3] = 0;
+    darkKeyed++;
+  }
+}
+console.log(`Keyed ${darkKeyed} dark separator pixels to alpha`);
+
+// Trzeci pass: magenta-tendency cleanup. Wszystkie piksele z wysokim R+B i niskim G (ciemnomagentowe artefakty separatorów).
+// Postać używa fiolet/lawenda gdzie G ≈ R (np. #c4b5fd → 196,181,253), więc nie zostanie tknięta.
+let magentaTendencyKeyed = 0;
+for (let i = 0; i < data.length; i += 4) {
+  if (data[i + 3] === 0) continue;
+  const r = data[i], g = data[i + 1], b = data[i + 2];
+  if (r >= 80 && b >= 80 && g < r * 0.5 && g < b * 0.5) {
+    data[i + 3] = 0;
+    magentaTendencyKeyed++;
+  }
+}
+console.log(`Keyed ${magentaTendencyKeyed} magenta-tendency pixels to alpha`);
 
 const keyed = await sharp(data, {
   raw: { width: info.width, height: info.height, channels: 4 },

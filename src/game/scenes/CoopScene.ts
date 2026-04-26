@@ -4,6 +4,7 @@ import { Boss, BOSS_SPECS } from "../characters/Boss";
 import { Brave } from "../characters/Brave";
 import { Hope } from "../characters/Hope";
 import { PlayerCharacter } from "../characters/PlayerCharacter";
+import { Wise } from "../characters/Wise";
 import { bgm } from "../audio/bgm";
 import { sfx } from "../audio/sfx";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
@@ -13,7 +14,7 @@ const GROUND_Y = 640;
 const BOSS_HP_MULTIPLIER = 2.4;
 const INVULN_MS = 700;
 
-type CoopCharacter = Exclude<CharacterKey, "wise">;
+type CoopCharacter = CharacterKey;
 
 export type CoopData = {
   p1Character?: CoopCharacter;
@@ -36,6 +37,7 @@ function spawnPlayer(
   y: number,
 ): PlayerCharacter {
   if (key === "brave") return new Brave(scene, x, y);
+  if (key === "wise") return new Wise(scene, x, y);
   return new Hope(scene, x, y);
 }
 
@@ -373,22 +375,6 @@ export class CoopScene extends Phaser.Scene {
     if (victory) sfx.playVictory();
     else sfx.playDefeat();
 
-    const message = victory
-      ? "WSPÓLNE ZWYCIĘSTWO!\nDuet uzdrowił Lord Stresa."
-      : "OBOJE POTRZEBUJECIE WYTCHNIENIA.\nWróćcie silniejsi.";
-
-    this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40, message, {
-        fontFamily: "monospace",
-        fontSize: "30px",
-        color: victory ? "#fcd34d" : "#f87171",
-        align: "center",
-        fontStyle: "bold",
-        stroke: "#000000",
-        strokeThickness: 4,
-      })
-      .setOrigin(0.5);
-
     if (victory) {
       this.tweens.add({
         targets: this.boss,
@@ -399,7 +385,12 @@ export class CoopScene extends Phaser.Scene {
     }
 
     this.time.delayedCall(victory ? 2400 : 2200, () => {
-      this.scene.start("MainMenuScene");
+      this.scene.start("GameOverScene", {
+        outcome: victory ? "victory" : "defeat",
+        mode: "coop",
+        p1Character: this.p1Key,
+        p2Character: this.p2Key,
+      });
     });
   }
 }

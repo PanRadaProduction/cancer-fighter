@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import { TEXTURES } from "../assets/placeholders";
 import { sfx } from "../audio/sfx";
+import { SPRITES } from "../scenes/BootScene";
 
 export type ExtraSpecialKind =
   | "ground_slam"
@@ -12,6 +13,8 @@ export type BossSpec = {
   key: "stress" | "darkness";
   name: string;
   textureKey: string;
+  fallbackTextureKey: string;
+  idleAnimKey?: string;
   width: number;
   height: number;
   maxHp: number;
@@ -38,7 +41,9 @@ export const BOSS_SPECS: Record<BossSpec["key"], BossSpec> = {
   stress: {
     key: "stress",
     name: "LORD STRES",
-    textureKey: TEXTURES.stress,
+    textureKey: SPRITES.stress,
+    fallbackTextureKey: TEXTURES.stress,
+    idleAnimKey: "stress-idle",
     width: 192,
     height: 288,
     maxHp: 200,
@@ -63,7 +68,9 @@ export const BOSS_SPECS: Record<BossSpec["key"], BossSpec> = {
   darkness: {
     key: "darkness",
     name: "PANI CIEMNOŚĆ",
-    textureKey: TEXTURES.darkness,
+    textureKey: SPRITES.darkness,
+    fallbackTextureKey: TEXTURES.darkness,
+    idleAnimKey: "darkness-idle",
     width: 192,
     height: 288,
     maxHp: 280,
@@ -170,19 +177,30 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
   private baseY: number;
 
   constructor(scene: Phaser.Scene, x: number, y: number, spec: BossSpec) {
-    super(scene, x, y, spec.textureKey);
+    const initialTexture = scene.textures.exists(spec.textureKey)
+      ? spec.textureKey
+      : spec.fallbackTextureKey;
+    super(scene, x, y, initialTexture);
     this.spec = spec;
     this.hp = spec.maxHp;
     this.baseY = y;
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.setOrigin(0.5, 1);
+    this.setDisplaySize(spec.width, spec.height);
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setSize(spec.width - 16, spec.height - 16);
     body.setOffset(8, 8);
     body.allowGravity = false;
     this.setImmovable(true);
     this.nextSpecialAt = scene.time.now + spec.specialCooldownMs;
+    if (
+      spec.idleAnimKey &&
+      scene.anims.exists(spec.idleAnimKey) &&
+      initialTexture === spec.textureKey
+    ) {
+      this.play(spec.idleAnimKey);
+    }
   }
 
   takeDamage(amount: number): void {
@@ -939,12 +957,22 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
         200,
         sceneW - 200,
       );
-      const sprite = this.scene.add.sprite(cx, this.y, this.spec.textureKey);
+      const cloneTexture = this.scene.textures.exists(this.spec.textureKey)
+        ? this.spec.textureKey
+        : this.spec.fallbackTextureKey;
+      const sprite = this.scene.add.sprite(cx, this.y, cloneTexture);
       sprite.setOrigin(0.5, 1);
+      sprite.setDisplaySize(this.spec.width, this.spec.height);
       sprite.setTint(this.spec.tintFlash);
       sprite.setAlpha(0.55);
-      sprite.setScale(this.scaleX, this.scaleY);
       sprite.setFlipX(dir === -1);
+      if (
+        this.spec.idleAnimKey &&
+        this.scene.anims.exists(this.spec.idleAnimKey) &&
+        cloneTexture === this.spec.textureKey
+      ) {
+        sprite.play(this.spec.idleAnimKey);
+      }
 
       this.spawnPuff(cx, this.y - this.spec.height / 2, 8, 30);
 

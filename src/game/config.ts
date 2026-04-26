@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 import { BootScene } from "./scenes/BootScene";
 import { CoopScene } from "./scenes/CoopScene";
+import { GameOverScene } from "./scenes/GameOverScene";
 import { MainMenuScene } from "./scenes/MainMenuScene";
 import { StageScene } from "./scenes/StageScene";
 import { StorySelectScene } from "./scenes/StorySelectScene";
@@ -29,6 +30,13 @@ export function createGameConfig(
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [BootScene, MainMenuScene, StorySelectScene, StageScene, CoopScene],
+    scene: [
+      BootScene,
+      MainMenuScene,
+      StorySelectScene,
+      StageScene,
+      CoopScene,
+      GameOverScene,
+    ],
   };
 }

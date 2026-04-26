@@ -293,27 +293,26 @@ export class StageScene extends Phaser.Scene {
     }
 
     const isLastStage = this.currentStage === 2;
-    let message: string;
-    if (victory && isLastStage) {
-      message =
-        "ZWYCIĘSTWO!\nPani Ciemność rozpływa się w świetle.\nKampania ukończona.";
-    } else if (victory) {
-      message = "UZDROWIONO!\nKolejny krok leczenia...";
-    } else {
-      message = "PRZERWA W WALCE.\nZregeneruj nadzieję i spróbuj ponownie.";
-    }
+    const isMidVictory = victory && !isLastStage;
 
-    this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40, message, {
-        fontFamily: "monospace",
-        fontSize: "30px",
-        color: victory ? "#fcd34d" : "#f87171",
-        align: "center",
-        fontStyle: "bold",
-        stroke: "#000000",
-        strokeThickness: 4,
-      })
-      .setOrigin(0.5);
+    if (isMidVictory) {
+      this.add
+        .text(
+          GAME_WIDTH / 2,
+          GAME_HEIGHT / 2 - 40,
+          "UZDROWIONO!\nKolejny krok leczenia...",
+          {
+            fontFamily: "monospace",
+            fontSize: "30px",
+            color: "#fcd34d",
+            align: "center",
+            fontStyle: "bold",
+            stroke: "#000000",
+            strokeThickness: 4,
+          },
+        )
+        .setOrigin(0.5);
+    }
 
     if (victory) {
       this.tweens.add({
@@ -327,13 +326,17 @@ export class StageScene extends Phaser.Scene {
 
     const delay = victory ? 2400 : 2200;
     this.time.delayedCall(delay, () => {
-      if (victory && !isLastStage) {
+      if (isMidVictory) {
         this.scene.restart({
           stage: 2,
           character: this.characterKey,
         } satisfies StageData);
       } else {
-        this.scene.start("MainMenuScene");
+        this.scene.start("GameOverScene", {
+          outcome: victory ? "victory" : "defeat",
+          mode: "story",
+          character: this.characterKey,
+        });
       }
     });
   }
