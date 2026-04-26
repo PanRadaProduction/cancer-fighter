@@ -28,6 +28,7 @@ type CharacterCard = {
   unlocked: boolean;
   accent: AccentName;
   description: string;
+  lockedLabel?: string;
 };
 
 type SelectMode = "story" | "coop";
@@ -60,9 +61,9 @@ const ROSTER: CharacterCard[] = [
     key: "wise",
     name: "DR. MEDRZEC",
     role: "HERO · 03",
-    unlocked: true,
+    unlocked: false,
     accent: "cyan",
-    description: "Leczące fale. Cyan różdżka uzdrawiająca.",
+    description: "Leczące fale. (wkrótce)",
   },
 ];
 
@@ -103,7 +104,9 @@ export class StorySelectScene extends Phaser.Scene {
       this.makeCard(x, cardsTop, cardWidth, cardHeight, card);
     });
 
-    this.makeBackButton(GAME_WIDTH - 24, 36);
+    if (this.mode === "coop" && this.phase === "p2") {
+      this.makeBackButton(GAME_WIDTH - 24, 36);
+    }
     this.makeFooter(cx, GAME_HEIGHT - 28);
   }
 
@@ -189,9 +192,14 @@ export class StorySelectScene extends Phaser.Scene {
     return ROSTER.map((card) => {
       let unlocked = card.unlocked;
       let description = card.description;
+      let lockedLabel = card.lockedLabel;
       if (this.mode === "coop" && card.key === "brave") {
         unlocked = true;
         description = "Szarża z tarczą. Mocniejszy cios.";
+      }
+      if (this.mode === "coop" && card.key === "wise") {
+        unlocked = true;
+        description = "Leczące fale. Cyan różdżka uzdrawiająca.";
       }
       if (
         this.mode === "coop" &&
@@ -202,7 +210,7 @@ export class StorySelectScene extends Phaser.Scene {
         unlocked = false;
         description = "Wybrana przez P1.";
       }
-      return { ...card, unlocked, description };
+      return { ...card, unlocked, description, lockedLabel };
     });
   }
 
@@ -338,11 +346,16 @@ export class StorySelectScene extends Phaser.Scene {
       brave: { texture: SPRITES.brave, anim: "brave-idle" },
       wise: { texture: SPRITES.wise, anim: "wise-idle" },
     };
+    const PORTRAIT_SCALE: Record<CharacterKey, number> = {
+      hope: 1.1,
+      brave: 1.55,
+      wise: 1.55,
+    };
     const heroSprite = heroSprites[card.key];
     if (heroSprite && this.textures.exists(heroSprite.texture)) {
       const sprite = this.add.sprite(0, portraitY + 8, heroSprite.texture, 0);
       sprite.setOrigin(0.5);
-      sprite.setScale(1.1);
+      sprite.setScale(PORTRAIT_SCALE[card.key]);
       if (this.anims.exists(heroSprite.anim)) {
         sprite.play(heroSprite.anim);
       }
@@ -398,7 +411,9 @@ export class StorySelectScene extends Phaser.Scene {
       .rectangle(0, 0, w, bh, accent.hex, card.unlocked ? 0.85 : 0.18)
       .setStrokeStyle(2, accent.hex, card.unlocked ? 1 : 0.45);
 
-    const label = card.unlocked ? "▶ ZAGRAJ" : "✕ WKROTCE";
+    const label = card.unlocked
+      ? "▶ ZAGRAJ"
+      : (card.lockedLabel ?? "✕ WKROTCE");
     const text = this.add
       .text(0, 0, label, {
         fontFamily: ARCADE_FONT,

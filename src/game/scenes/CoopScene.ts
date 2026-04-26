@@ -127,23 +127,29 @@ export class CoopScene extends Phaser.Scene {
     this.add.text(
       40,
       60,
-      `P1: ${this.p1.displayName.toUpperCase()} — WASD ruch/skok • F lekki • G silny`,
+      `P1 ${this.p1.displayName.toUpperCase()} · [A][D] ruch · [W]/[SPACE] skok · [F] lekki · [G] silny`,
       {
         fontFamily: "monospace",
-        fontSize: "11px",
+        fontSize: "13px",
         color: "#fde68a",
+        backgroundColor: "#0f0a1fcc",
+        padding: { x: 6, y: 3 },
       },
     );
     this.add.text(
       40,
-      78,
-      `P2: ${this.p2.displayName.toUpperCase()} — ← → ↑ ruch/skok • N lekki • M silny`,
+      82,
+      `P2 ${this.p2.displayName.toUpperCase()} · [←][→] ruch · [↑] skok · [N] lekki · [M] silny`,
       {
         fontFamily: "monospace",
-        fontSize: "11px",
+        fontSize: "13px",
         color: "#fca5a5",
+        backgroundColor: "#0f0a1fcc",
+        padding: { x: 6, y: 3 },
       },
     );
+
+    this.showControlsOverlay();
 
     this.add
       .text(GAME_WIDTH - 240, 60, this.boss.spec.name, {
@@ -339,19 +345,19 @@ export class CoopScene extends Phaser.Scene {
 
     this.p1Bar.clear();
     this.p1Bar.fillStyle(0x000000, 0.5);
-    this.p1Bar.fillRect(40, 96, w, h);
+    this.p1Bar.fillRect(40, 116, w, h);
     this.p1Bar.fillStyle(0x22c55e, 1);
-    this.p1Bar.fillRect(40, 96, w * (this.p1.hp / this.p1.maxHp), h);
+    this.p1Bar.fillRect(40, 116, w * (this.p1.hp / this.p1.maxHp), h);
     this.p1Bar.lineStyle(2, 0xffffff, 0.6);
-    this.p1Bar.strokeRect(40, 96, w, h);
+    this.p1Bar.strokeRect(40, 116, w, h);
 
     this.p2Bar.clear();
     this.p2Bar.fillStyle(0x000000, 0.5);
-    this.p2Bar.fillRect(40, 116, w, h);
+    this.p2Bar.fillRect(40, 136, w, h);
     this.p2Bar.fillStyle(0xfb923c, 1);
-    this.p2Bar.fillRect(40, 116, w * (this.p2.hp / this.p2.maxHp), h);
+    this.p2Bar.fillRect(40, 136, w * (this.p2.hp / this.p2.maxHp), h);
     this.p2Bar.lineStyle(2, 0xffffff, 0.6);
-    this.p2Bar.strokeRect(40, 116, w, h);
+    this.p2Bar.strokeRect(40, 136, w, h);
 
     this.bossBar.clear();
     this.bossBar.fillStyle(0x000000, 0.5);
@@ -365,6 +371,92 @@ export class CoopScene extends Phaser.Scene {
     );
     this.bossBar.lineStyle(2, 0xffffff, 0.6);
     this.bossBar.strokeRect(GAME_WIDTH - 240, 80, w, 14);
+  }
+
+  private showControlsOverlay(): void {
+    const cx = GAME_WIDTH / 2;
+    const cy = GAME_HEIGHT / 2;
+    const overlay = this.add.container(cx, cy).setDepth(1000);
+
+    const panelW = 760;
+    const panelH = 320;
+    const bg = this.add.rectangle(0, 0, panelW, panelH, 0x04020e, 0.92);
+    bg.setStrokeStyle(3, 0xfcd34d, 0.9);
+
+    const title = this.add
+      .text(0, -panelH / 2 + 32, "STEROWANIE — CO-OP", {
+        fontFamily: "monospace",
+        fontSize: "22px",
+        color: "#fcd34d",
+      })
+      .setOrigin(0.5);
+
+    const colY = -40;
+    const p1Lines = [
+      `P1 — ${this.p1.displayName.toUpperCase()}`,
+      "",
+      "[A]  [D]    Ruch L/P",
+      "[W]  [SPACE] Skok",
+      "[F]         Atak lekki",
+      "[G]         Atak silny",
+    ];
+    const p2Lines = [
+      `P2 — ${this.p2.displayName.toUpperCase()}`,
+      "",
+      "[←]  [→]    Ruch L/P",
+      "[↑]         Skok",
+      "[N]         Atak lekki",
+      "[M]         Atak silny",
+    ];
+
+    const p1Text = this.add
+      .text(-panelW / 2 + 60, colY, p1Lines.join("\n"), {
+        fontFamily: "monospace",
+        fontSize: "18px",
+        color: "#fde68a",
+        lineSpacing: 6,
+      })
+      .setOrigin(0, 0.5);
+
+    const p2Text = this.add
+      .text(60, colY, p2Lines.join("\n"), {
+        fontFamily: "monospace",
+        fontSize: "18px",
+        color: "#fca5a5",
+        lineSpacing: 6,
+      })
+      .setOrigin(0, 0.5);
+
+    const hint = this.add
+      .text(
+        0,
+        panelH / 2 - 28,
+        "Naciśnij dowolny klawisz, aby zacząć  ·  auto-start za 5 s",
+        {
+          fontFamily: "monospace",
+          fontSize: "14px",
+          color: "#cbd5e1",
+        },
+      )
+      .setOrigin(0.5);
+
+    overlay.add([bg, title, p1Text, p2Text, hint]);
+
+    let dismissed = false;
+    const dismiss = () => {
+      if (dismissed) return;
+      dismissed = true;
+      this.tweens.add({
+        targets: overlay,
+        alpha: 0,
+        duration: 220,
+        onComplete: () => overlay.destroy(),
+      });
+      this.input.keyboard?.off("keydown", dismiss);
+    };
+
+    this.input.keyboard?.on("keydown", dismiss);
+    this.time.delayedCall(5000, dismiss);
   }
 
   private endGame(victory: boolean): void {
