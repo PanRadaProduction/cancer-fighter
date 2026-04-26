@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DonateQR } from "@/components/DonateQR";
 import { DONATION } from "@/lib/donation";
 
@@ -17,6 +18,12 @@ export default function Home() {
             dziecięcym. Każda rozegrana minuta to symboliczny krok obok dzieci,
             które walczą naprawdę.
           </p>
+          <Link
+            href="/play"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-amber-300 px-8 py-3 font-semibold text-slate-950 shadow-lg shadow-amber-500/20 transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+          >
+            ▶ Zagraj teraz
+          </Link>
         </div>
 
         <section
