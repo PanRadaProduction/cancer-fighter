@@ -16,6 +16,9 @@ export type PlayerConfig = {
   bodyHeight: number;
   bodyOffsetX: number;
   bodyOffsetY: number;
+  /** Display size in pixels (renders at this size regardless of source texture). */
+  displayWidth: number;
+  displayHeight: number;
 };
 
 export abstract class PlayerCharacter extends Phaser.Physics.Arcade.Sprite {
@@ -34,6 +37,7 @@ export abstract class PlayerCharacter extends Phaser.Physics.Arcade.Sprite {
     this.setCollideWorldBounds(true);
     this.setBounce(0.05);
     this.setOrigin(0.5, 1);
+    this.setDisplaySize(config.displayWidth, config.displayHeight);
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setSize(config.bodyWidth, config.bodyHeight);
     body.setOffset(config.bodyOffsetX, config.bodyOffsetY);

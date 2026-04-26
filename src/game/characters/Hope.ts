@@ -1,9 +1,9 @@
 import * as Phaser from "phaser";
-import { TEXTURES } from "../assets/placeholders";
+import { SPRITES } from "../scenes/BootScene";
 import { PlayerCharacter, type PlayerConfig } from "./PlayerCharacter";
 
 export const HOPE_CONFIG: PlayerConfig = {
-  textureKey: TEXTURES.hope,
+  textureKey: SPRITES.hope,
   speed: 240,
   jumpVelocity: -560,
   maxHp: 100,
@@ -17,6 +17,8 @@ export const HOPE_CONFIG: PlayerConfig = {
   bodyHeight: 140,
   bodyOffsetX: 13,
   bodyOffsetY: 4,
+  displayWidth: 96,
+  displayHeight: 144,
 };
 
 export class Hope extends PlayerCharacter {

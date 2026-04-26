@@ -17,6 +17,8 @@ export const BRAVE_CONFIG: PlayerConfig = {
   bodyHeight: 140,
   bodyOffsetX: 10,
   bodyOffsetY: 4,
+  displayWidth: 96,
+  displayHeight: 144,
 };
 
 export class Brave extends PlayerCharacter {
