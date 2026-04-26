@@ -10,10 +10,11 @@ const SHEET_H = FRAME_H;
 
 const COLOR_KEY_THRESHOLD = 30;
 const ALPHA_OPAQUE_MIN = 200;
+const CHECKER_SECONDARY_THRESHOLD = 30;
 
-const inputPath = path.resolve(
-  "/Users/panrada/Library/Application Support/Dropshare 5/pixel-art-girl-orange-dress-animation-frames-MOBQ.png",
-);
+const inputPath = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : path.resolve("public/sprites/.tmp/hope-sheet-v2-raw.png");
 const outputPath = path.resolve("public/sprites/hope-idle.png");
 
 if (!fs.existsSync(inputPath)) {
@@ -38,23 +39,58 @@ const cornerSamples = [
   return { r: fullData[i], g: fullData[i + 1], b: fullData[i + 2], a: fullData[i + 3] };
 });
 const opaqueCorners = cornerSamples.filter((c) => c.a >= ALPHA_OPAQUE_MIN);
-let keyR = 0, keyG = 0, keyB = 0;
-if (opaqueCorners.length >= 2) {
-  keyR = Math.round(opaqueCorners.reduce((s, c) => s + c.r, 0) / opaqueCorners.length);
-  keyG = Math.round(opaqueCorners.reduce((s, c) => s + c.g, 0) / opaqueCorners.length);
-  keyB = Math.round(opaqueCorners.reduce((s, c) => s + c.b, 0) / opaqueCorners.length);
-  const thresholdSq = COLOR_KEY_THRESHOLD * COLOR_KEY_THRESHOLD;
+function applyKey(targetR, targetG, targetB, threshold, label) {
+  const thresholdSq = threshold * threshold;
   let keyed = 0;
   for (let i = 0; i < fullData.length; i += 4) {
-    const dr = fullData[i] - keyR;
-    const dg = fullData[i + 1] - keyG;
-    const db = fullData[i + 2] - keyB;
+    if (fullData[i + 3] === 0) continue;
+    const dr = fullData[i] - targetR;
+    const dg = fullData[i + 1] - targetG;
+    const db = fullData[i + 2] - targetB;
     if (dr * dr + dg * dg + db * db <= thresholdSq) {
       fullData[i + 3] = 0;
       keyed++;
     }
   }
-  console.log(`Global color-key rgb(${keyR},${keyG},${keyB}) → ${keyed} pixels alpha-zeroed`);
+  console.log(`${label} color-key rgb(${targetR},${targetG},${targetB}) → ${keyed} pixels alpha-zeroed`);
+}
+
+if (opaqueCorners.length >= 2) {
+  const keyR = Math.round(opaqueCorners.reduce((s, c) => s + c.r, 0) / opaqueCorners.length);
+  const keyG = Math.round(opaqueCorners.reduce((s, c) => s + c.g, 0) / opaqueCorners.length);
+  const keyB = Math.round(opaqueCorners.reduce((s, c) => s + c.b, 0) / opaqueCorners.length);
+  applyKey(keyR, keyG, keyB, COLOR_KEY_THRESHOLD, "Primary");
+
+  // Detect checkerboard secondary color: sample multiple corner-area pixels
+  const cornerPositions = [
+    [4, 4], [W - 5, 4], [4, H - 5], [W - 5, H - 5],
+    [12, 12], [W - 13, 12], [12, H - 13], [W - 13, H - 13],
+  ];
+  const cornerColors = cornerPositions
+    .map(([x, y]) => {
+      const i = (y * W + x) * 4;
+      return { r: fullData[i], g: fullData[i + 1], b: fullData[i + 2], a: fullData[i + 3] };
+    })
+    .filter((c) => c.a >= ALPHA_OPAQUE_MIN);
+  if (cornerColors.length > 0) {
+    const sR = Math.round(cornerColors.reduce((s, c) => s + c.r, 0) / cornerColors.length);
+    const sG = Math.round(cornerColors.reduce((s, c) => s + c.g, 0) / cornerColors.length);
+    const sB = Math.round(cornerColors.reduce((s, c) => s + c.b, 0) / cornerColors.length);
+    applyKey(sR, sG, sB, CHECKER_SECONDARY_THRESHOLD, "Secondary");
+  }
+
+  // Catch-all for checkerboard "transparency" patterns rendered as 2 grayscale tones
+  let grayKeyed = 0;
+  for (let i = 0; i < fullData.length; i += 4) {
+    if (fullData[i + 3] === 0) continue;
+    const r = fullData[i], g = fullData[i + 1], b = fullData[i + 2];
+    const maxDiff = Math.max(Math.abs(r - g), Math.abs(g - b), Math.abs(r - b));
+    if (maxDiff <= 8 && r >= 60 && r <= 160) {
+      fullData[i + 3] = 0;
+      grayKeyed++;
+    }
+  }
+  console.log(`Gray-checkerboard key: ${grayKeyed} pixels alpha-zeroed`);
 } else {
   console.log("Corners already transparent, skipping color-key");
 }

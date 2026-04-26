@@ -21,7 +21,11 @@ export class BootScene extends Phaser.Scene {
   create(): void {
     this.anims.create({
       key: "hope-idle",
-      frames: this.anims.generateFrameNumbers(SPRITES.hope, { start: 0, end: 3 }),
+      frames: [
+        { key: SPRITES.hope, frame: 0 },
+        { key: SPRITES.hope, frame: 2 },
+        { key: SPRITES.hope, frame: 3 },
+      ],
       frameRate: 4,
       repeat: -1,
     });
