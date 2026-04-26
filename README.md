@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cancer Fighter — Heroes of Hope
 
-## Getting Started
+Charytatywna gra 2D fighting (retro pixel art) wspierająca walkę z rakiem dziecięcym.
 
-First, run the development server:
+> **Status:** scaffold — projekt w fazie pre-produkcji.
+> **Plan produkcyjny:** `~/.claude/plans/plan-stworzenia-gry-async-petal.md`
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Misja
+
+- Zbiórka funduszy na walkę z rakiem dziecięcym
+- Edukacja i budowanie świadomości
+- Mechanika **leczenia** zamiast obrażeń — bohaterowie pokonują personifikacje chorób, nie siebie nawzajem
+- Pełna zgodność z RODO i przepisami o zbiórkach publicznych
+
+## Stack
+
+- **Engine:** Phaser 4
+- **Frontend / SSR:** Next.js 16 (App Router) + React 19 + Tailwind v4
+- **Backend:** Supabase (PostgreSQL + Auth + Edge Functions + Realtime)
+- **Hosting:** Vercel + Cloudflare CDN dla assetów
+- **Płatności:** Zrzutka.pl / PayU / Stripe
+
+## Struktura
+
+```
+src/
+  app/                Next.js App Router (lądówka, panel zbiórki)
+  game/
+    scenes/           Phaser scenes (menu, story, versus, training)
+    characters/       Definicje postaci (Hope, Brave, Wise Doc, ...)
+  lib/                Klient Supabase, helpery
+supabase/
+  migrations/         Schemat bazy (donations, players, stories)
+  functions/          Edge Functions (webhooki płatności, agregacja zbiórki)
+assets/
+  sprites/            Pixel art postaci i bossów
+  audio/              Muzyka i SFX
+  backgrounds/        Tła stages
+docs/
+  legal/              Regulamin, polityka prywatności, RODO, dokumenty zbiórki
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Uruchomienie lokalne
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Otwórz `http://localhost:3000`.
 
-## Learn More
+## Aspekty etyczne
 
-To learn more about Next.js, take a look at the following resources:
+Gra jest narzędziem **wsparcia i edukacji**, nie leczenia. Każdy element narracyjny i medyczny przechodzi konsultację z onkologiem dziecięcym i psychoonkologiem. Wizerunki/historie realnych dzieci wyłącznie za pisemną zgodą rodziców.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Licencje
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Kod źródłowy: zobacz `LICENSE` (do uzupełnienia)
+- Assety (grafika, audio): zobacz `assets/LICENSES.md`
