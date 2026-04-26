@@ -3,7 +3,9 @@ import * as Phaser from "phaser";
 export const TEXTURES = {
   hope: "hope-placeholder",
   stress: "stress-placeholder",
+  darkness: "darkness-placeholder",
   ground: "ground-placeholder",
+  groundGarden: "ground-garden-placeholder",
   hitFlash: "hitflash-placeholder",
 } as const;
 
@@ -63,6 +65,53 @@ export function createPlaceholderTextures(scene: Phaser.Scene): void {
     g.lineStyle(1, 0x1e1b4b);
     g.strokeRect(0, 0, 64, 32);
     g.generateTexture(TEXTURES.ground, 64, 32);
+    g.destroy();
+  }
+
+  if (!scene.textures.exists(TEXTURES.groundGarden)) {
+    const g = scene.make.graphics({ x: 0, y: 0 });
+    g.fillStyle(0x14532d);
+    g.fillRect(0, 0, 64, 32);
+    g.fillStyle(0x16a34a);
+    g.fillRect(0, 0, 64, 4);
+    g.fillStyle(0x86efac);
+    for (let i = 0; i < 6; i++) {
+      const tx = (i * 13) % 60;
+      g.fillRect(tx, 4, 2, 6);
+    }
+    g.lineStyle(1, 0x052e16);
+    g.strokeRect(0, 0, 64, 32);
+    g.generateTexture(TEXTURES.groundGarden, 64, 32);
+    g.destroy();
+  }
+
+  if (!scene.textures.exists(TEXTURES.darkness)) {
+    const g = scene.make.graphics({ x: 0, y: 0 });
+    g.fillStyle(0x111827);
+    g.fillRect(0, 0, 192, 288);
+    g.fillStyle(0x1f2937);
+    g.fillRect(8, 8, 176, 272);
+    // Płaszcz / cień
+    g.fillStyle(0x4b5563);
+    g.fillTriangle(96, 30, 30, 240, 162, 240);
+    // Kaptur / głowa
+    g.fillStyle(0x000000);
+    g.fillCircle(96, 80, 44);
+    g.fillStyle(0x1f2937);
+    g.fillCircle(96, 80, 36);
+    // Świecące oczy
+    g.fillStyle(0xc4b5fd);
+    g.fillCircle(80, 78, 6);
+    g.fillCircle(112, 78, 6);
+    g.fillStyle(0xffffff);
+    g.fillCircle(80, 78, 2);
+    g.fillCircle(112, 78, 2);
+    // Łza/krew
+    g.fillStyle(0x7c3aed);
+    g.fillTriangle(80, 90, 76, 104, 84, 104);
+    g.lineStyle(4, 0x000000);
+    g.strokeRect(0, 0, 192, 288);
+    g.generateTexture(TEXTURES.darkness, 192, 288);
     g.destroy();
   }
 

@@ -1,5 +1,6 @@
 import * as Phaser from "phaser";
 import { TEXTURES } from "../assets/placeholders";
+import { sfx } from "../audio/sfx";
 
 export const HOPE_CONFIG = {
   speed: 240,
@@ -51,23 +52,27 @@ export class Hope extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     if (body.blocked.down || body.touching.down) {
       this.setVelocityY(HOPE_CONFIG.jumpVelocity);
+      sfx.playJump();
     }
   }
 
   tryLightAttack(now: number): Phaser.Geom.Rectangle | null {
     if (now - this.lastLightAt < HOPE_CONFIG.lightCooldownMs) return null;
     this.lastLightAt = now;
+    sfx.playLightAttack();
     return this.attackHitbox(HOPE_CONFIG.attackRange);
   }
 
   tryHeavyAttack(now: number): Phaser.Geom.Rectangle | null {
     if (now - this.lastHeavyAt < HOPE_CONFIG.heavyCooldownMs) return null;
     this.lastHeavyAt = now;
+    sfx.playHeavyAttack();
     return this.attackHitbox(HOPE_CONFIG.attackRange + 30);
   }
 
   takeDamage(amount: number): void {
     this.hp = Math.max(0, this.hp - amount);
+    sfx.playPlayerHurt();
     this.scene.tweens.add({
       targets: this,
       alpha: 0.4,

@@ -144,7 +144,7 @@ export class StorySelectScene extends Phaser.Scene {
       bgRect.on("pointerdown", () => {
         this.cameras.main.fade(300, 15, 10, 31);
         this.cameras.main.once("camerafadeoutcomplete", () => {
-          this.scene.start("StageScene", { character: card.key });
+          this.scene.start("StageScene", { stage: 1 });
         });
       });
     }

@@ -1,16 +1,41 @@
 import * as Phaser from "phaser";
 import { TEXTURES } from "../assets/placeholders";
+import { Boss, BOSS_SPECS, type BossSpec } from "../characters/Boss";
 import { Hope, HOPE_CONFIG } from "../characters/Hope";
+import { sfx } from "../audio/sfx";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
 
-const STRESS_MAX_HP = 200;
+export type StageData = { stage?: 1 | 2 };
+
 const GROUND_Y = 640;
+
+const STAGE_CONFIG: Record<
+  1 | 2,
+  {
+    title: string;
+    bossKey: BossSpec["key"];
+    bgColors: [number, number, number, number];
+    groundTexture: string;
+  }
+> = {
+  1: {
+    title: "ETAP 1 — SALA ZABAW SZPITALA",
+    bossKey: "stress",
+    bgColors: [0x4338ca, 0x4338ca, 0x0f0a1f, 0x0f0a1f],
+    groundTexture: TEXTURES.ground,
+  },
+  2: {
+    title: "ETAP 2 — MAGICZNY OGRÓD",
+    bossKey: "darkness",
+    bgColors: [0x166534, 0x166534, 0x4c1d95, 0x4c1d95],
+    groundTexture: TEXTURES.groundGarden,
+  },
+};
 
 export class StageScene extends Phaser.Scene {
   private hope!: Hope;
-  private stress!: Phaser.Physics.Arcade.Sprite;
-  private stressHp = STRESS_MAX_HP;
-  private stressFlashing = false;
+  private boss!: Boss;
+  private currentStage: 1 | 2 = 1;
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keyA!: Phaser.Input.Keyboard.Key;
@@ -18,84 +43,87 @@ export class StageScene extends Phaser.Scene {
   private keySpace!: Phaser.Input.Keyboard.Key;
 
   private hopeBar!: Phaser.GameObjects.Graphics;
-  private stressBar!: Phaser.GameObjects.Graphics;
-  private hpLabel!: Phaser.GameObjects.Text;
-  private bossLabel!: Phaser.GameObjects.Text;
-  private hintsLabel!: Phaser.GameObjects.Text;
-  private outcomeLabel?: Phaser.GameObjects.Text;
+  private bossBar!: Phaser.GameObjects.Graphics;
 
+  private hopeInvulnUntil = 0;
   private finished = false;
 
   constructor() {
     super({ key: "StageScene" });
   }
 
+  init(data: StageData): void {
+    this.currentStage = data.stage ?? 1;
+    this.finished = false;
+    this.hopeInvulnUntil = 0;
+  }
+
   create(): void {
+    const stageCfg = STAGE_CONFIG[this.currentStage];
+    const spec = BOSS_SPECS[stageCfg.bossKey];
+
     this.physics.world.gravity.y = 1100;
 
     const bg = this.add.graphics();
-    bg.fillGradientStyle(0x4338ca, 0x4338ca, 0x0f0a1f, 0x0f0a1f, 1);
+    bg.fillGradientStyle(...stageCfg.bgColors, 1);
     bg.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     this.add
-      .text(GAME_WIDTH / 2, 40, "ETAP 1 — SALA ZABAW SZPITALA", {
+      .text(GAME_WIDTH / 2, 40, stageCfg.title, {
         fontFamily: "monospace",
         fontSize: "16px",
         color: "#fcd34d",
       })
       .setOrigin(0.5);
 
+    this.add
+      .text(
+        GAME_WIDTH / 2,
+        62,
+        `Boss: ${spec.name}    HP: ${spec.maxHp}`,
+        {
+          fontFamily: "monospace",
+          fontSize: "12px",
+          color: "#cbd5e1",
+        },
+      )
+      .setOrigin(0.5);
+
     const ground = this.physics.add.staticGroup();
     for (let x = 0; x < GAME_WIDTH; x += 64) {
-      ground.create(x + 32, GROUND_Y + 16, TEXTURES.ground);
+      ground.create(x + 32, GROUND_Y + 16, stageCfg.groundTexture);
     }
 
     this.hope = new Hope(this, 320, GROUND_Y);
     this.physics.add.collider(this.hope, ground);
 
-    this.stress = this.physics.add.sprite(950, GROUND_Y, TEXTURES.stress);
-    this.stress.setOrigin(0.5, 1);
-    this.stress.setImmovable(true);
-    const stressBody = this.stress.body as Phaser.Physics.Arcade.Body;
-    stressBody.allowGravity = false;
-    stressBody.setSize(180, 280);
-    stressBody.setOffset(6, 8);
+    this.boss = new Boss(this, 950, GROUND_Y, spec);
 
-    this.add
-      .text(this.stress.x, GROUND_Y - 305, "LORD STRES", {
-        fontFamily: "monospace",
-        fontSize: "14px",
-        color: "#f87171",
-      })
-      .setOrigin(0.5);
-
-    this.cursors = this.input.keyboard!.createCursorKeys();
-    this.keyA = this.input.keyboard!.addKey(
-      Phaser.Input.Keyboard.KeyCodes.A,
-    );
-    this.keyS = this.input.keyboard!.addKey(
-      Phaser.Input.Keyboard.KeyCodes.S,
-    );
-    this.keySpace = this.input.keyboard!.addKey(
-      Phaser.Input.Keyboard.KeyCodes.SPACE,
-    );
-
-    this.hopeBar = this.add.graphics();
-    this.stressBar = this.add.graphics();
-
-    this.hpLabel = this.add.text(40, 70, "NADZIEJA", {
+    this.add.text(40, 70, "NADZIEJA", {
       fontFamily: "monospace",
       fontSize: "12px",
       color: "#fcd34d",
     });
 
-    this.bossLabel = this.add.text(GAME_WIDTH - 240, 70, "LORD STRES", {
-      fontFamily: "monospace",
-      fontSize: "12px",
-      color: "#f87171",
-    });
+    this.add
+      .text(GAME_WIDTH - 240, 70, spec.name, {
+        fontFamily: "monospace",
+        fontSize: "12px",
+        color: spec.labelColor,
+      })
+      .setOrigin(0, 0);
 
-    this.hintsLabel = this.add
+    this.cursors = this.input.keyboard!.createCursorKeys();
+    this.keyA = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    this.keyS = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    this.keySpace = this.input.keyboard!.addKey(
+      Phaser.Input.Keyboard.KeyCodes.SPACE,
+    );
+
+    this.hopeBar = this.add.graphics();
+    this.bossBar = this.add.graphics();
+
+    this.add
       .text(
         GAME_WIDTH / 2,
         GAME_HEIGHT - 30,
@@ -131,47 +159,55 @@ export class StageScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
       const hb = this.hope.tryLightAttack(time);
-      if (hb) this.resolveAttack(hb, HOPE_CONFIG.lightDamage, false);
+      if (hb) this.resolvePlayerAttack(hb, HOPE_CONFIG.lightDamage, false);
     }
     if (Phaser.Input.Keyboard.JustDown(this.keyS)) {
       const hb = this.hope.tryHeavyAttack(time);
-      if (hb) this.resolveAttack(hb, HOPE_CONFIG.heavyDamage, true);
+      if (hb) this.resolvePlayerAttack(hb, HOPE_CONFIG.heavyDamage, true);
+    }
+
+    this.boss.tick(time, this.hope);
+
+    const bossHit = this.boss.getActiveHitbox();
+    if (bossHit && time >= this.hopeInvulnUntil) {
+      const hopeRect = this.hopeRect();
+      if (Phaser.Geom.Intersects.RectangleToRectangle(bossHit, hopeRect)) {
+        this.hope.takeDamage(this.boss.spec.attackDamage);
+        this.hopeInvulnUntil = time + 700;
+        const knockX =
+          this.boss.x < this.hope.x ? 320 : -320;
+        this.hope.setVelocity(knockX, this.boss.spec.knockbackVelocity);
+        this.drawBars();
+      }
+    }
+
+    if (this.hope.hp <= 0) {
+      this.endStage(false);
+      return;
+    }
+
+    if (this.boss.isDead()) {
+      this.endStage(true);
     }
   }
 
-  private resolveAttack(
+  private hopeRect(): Phaser.Geom.Rectangle {
+    const body = this.hope.body as Phaser.Physics.Arcade.Body;
+    return new Phaser.Geom.Rectangle(body.x, body.y, body.width, body.height);
+  }
+
+  private resolvePlayerAttack(
     hitbox: Phaser.Geom.Rectangle,
     damage: number,
     heavy: boolean,
   ): void {
-    const sb = this.stress.body as Phaser.Physics.Arcade.Body;
-    const stressRect = new Phaser.Geom.Rectangle(
-      sb.x,
-      sb.y,
-      sb.width,
-      sb.height,
-    );
-    if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, stressRect)) {
-      this.stressHp = Math.max(0, this.stressHp - damage);
-      this.spawnHitFlash(this.stress.x, this.stress.y - 140, heavy);
-      if (!this.stressFlashing) {
-        this.stressFlashing = true;
-        this.tweens.add({
-          targets: this.stress,
-          tint: 0xff5555,
-          duration: 70,
-          yoyo: true,
-          onComplete: () => {
-            this.stress.clearTint();
-            this.stressFlashing = false;
-          },
-        });
-      }
+    const sb = this.boss.body as Phaser.Physics.Arcade.Body;
+    const bossRect = new Phaser.Geom.Rectangle(sb.x, sb.y, sb.width, sb.height);
+    if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, bossRect)) {
+      this.boss.takeDamage(damage);
+      sfx.playHit();
+      this.spawnHitFlash(this.boss.x, this.boss.y - 140, heavy);
       this.drawBars();
-
-      if (this.stressHp === 0) {
-        this.endStage(true);
-      }
     }
   }
 
@@ -189,41 +225,54 @@ export class StageScene extends Phaser.Scene {
   }
 
   private drawBars(): void {
-    const barWidth = 200;
-    const barHeight = 14;
+    const w = 200;
+    const h = 14;
 
     this.hopeBar.clear();
     this.hopeBar.fillStyle(0x000000, 0.5);
-    this.hopeBar.fillRect(40, 86, barWidth, barHeight);
+    this.hopeBar.fillRect(40, 86, w, h);
     const hopePct = this.hope.hp / HOPE_CONFIG.maxHp;
     this.hopeBar.fillStyle(0x22c55e, 1);
-    this.hopeBar.fillRect(40, 86, barWidth * hopePct, barHeight);
+    this.hopeBar.fillRect(40, 86, w * hopePct, h);
     this.hopeBar.lineStyle(2, 0xffffff, 0.6);
-    this.hopeBar.strokeRect(40, 86, barWidth, barHeight);
+    this.hopeBar.strokeRect(40, 86, w, h);
 
-    this.stressBar.clear();
-    this.stressBar.fillStyle(0x000000, 0.5);
-    this.stressBar.fillRect(GAME_WIDTH - 240, 86, barWidth, barHeight);
-    const stressPct = this.stressHp / STRESS_MAX_HP;
-    this.stressBar.fillStyle(0xef4444, 1);
-    this.stressBar.fillRect(GAME_WIDTH - 240, 86, barWidth * stressPct, barHeight);
-    this.stressBar.lineStyle(2, 0xffffff, 0.6);
-    this.stressBar.strokeRect(GAME_WIDTH - 240, 86, barWidth, barHeight);
+    this.bossBar.clear();
+    this.bossBar.fillStyle(0x000000, 0.5);
+    this.bossBar.fillRect(GAME_WIDTH - 240, 86, w, h);
+    const bossPct = this.boss.hp / this.boss.spec.maxHp;
+    this.bossBar.fillStyle(0xef4444, 1);
+    this.bossBar.fillRect(GAME_WIDTH - 240, 86, w * bossPct, h);
+    this.bossBar.lineStyle(2, 0xffffff, 0.6);
+    this.bossBar.strokeRect(GAME_WIDTH - 240, 86, w, h);
   }
 
   private endStage(victory: boolean): void {
     this.finished = true;
     this.hope.stopHorizontal();
 
-    const message = victory
-      ? "UZDROWIONO!\nLord Stres rozpływa się w świetle nadziei."
-      : "PRZERWA W WALCE.\nNabierz sił i spróbuj ponownie.";
+    if (victory) {
+      sfx.playVictory();
+    } else {
+      sfx.playDefeat();
+    }
 
-    this.outcomeLabel = this.add
+    const isLastStage = this.currentStage === 2;
+    let message: string;
+    if (victory && isLastStage) {
+      message =
+        "ZWYCIĘSTWO!\nPani Ciemność rozpływa się w świetle.\nKampania ukończona.";
+    } else if (victory) {
+      message = "UZDROWIONO!\nKolejny krok leczenia...";
+    } else {
+      message = "PRZERWA W WALCE.\nZregeneruj nadzieję i spróbuj ponownie.";
+    }
+
+    this.add
       .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 40, message, {
         fontFamily: "monospace",
-        fontSize: "32px",
-        color: "#fcd34d",
+        fontSize: "30px",
+        color: victory ? "#fcd34d" : "#f87171",
         align: "center",
         fontStyle: "bold",
         stroke: "#000000",
@@ -233,7 +282,7 @@ export class StageScene extends Phaser.Scene {
 
     if (victory) {
       this.tweens.add({
-        targets: this.stress,
+        targets: this.boss,
         alpha: 0,
         scale: 1.3,
         duration: 800,
@@ -241,13 +290,14 @@ export class StageScene extends Phaser.Scene {
       this.spawnHealParticles();
     }
 
-    this.time.delayedCall(2400, () => {
-      this.scene.start("MainMenuScene");
+    const delay = victory ? 2400 : 2200;
+    this.time.delayedCall(delay, () => {
+      if (victory && !isLastStage) {
+        this.scene.restart({ stage: 2 } satisfies StageData);
+      } else {
+        this.scene.start("MainMenuScene");
+      }
     });
-
-    void this.bossLabel;
-    void this.hpLabel;
-    void this.hintsLabel;
   }
 
   private spawnHealParticles(): void {
@@ -255,16 +305,12 @@ export class StageScene extends Phaser.Scene {
       const angle = (i / 24) * Math.PI * 2;
       const dx = Math.cos(angle) * 80;
       const dy = Math.sin(angle) * 80;
-      const p = this.add.image(
-        this.stress.x,
-        this.stress.y - 140,
-        TEXTURES.hitFlash,
-      );
+      const p = this.add.image(this.boss.x, this.boss.y - 140, TEXTURES.hitFlash);
       p.setScale(0.8);
       this.tweens.add({
         targets: p,
-        x: this.stress.x + dx * 3,
-        y: this.stress.y - 140 + dy * 3,
+        x: this.boss.x + dx * 3,
+        y: this.boss.y - 140 + dy * 3,
         alpha: 0,
         scale: 0.2,
         duration: 1200,
