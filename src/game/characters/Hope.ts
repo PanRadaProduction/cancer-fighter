@@ -19,6 +19,7 @@ export const HOPE_CONFIG: PlayerConfig = {
   bodyOffsetY: 4,
   displayWidth: 96,
   displayHeight: 144,
+  idleAnimKey: "hope-idle",
 };
 
 export class Hope extends PlayerCharacter {

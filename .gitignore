@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Claude Code local data (user-specific skills cache)
 /.claude/
+
+# generated sprite intermediates
+/public/sprites/.tmp/

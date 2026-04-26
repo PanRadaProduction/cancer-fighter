@@ -19,6 +19,8 @@ export type PlayerConfig = {
   /** Display size in pixels (renders at this size regardless of source texture). */
   displayWidth: number;
   displayHeight: number;
+  /** Optional looping idle animation key (must be registered in BootScene). */
+  idleAnimKey?: string;
 };
 
 export abstract class PlayerCharacter extends Phaser.Physics.Arcade.Sprite {
@@ -41,6 +43,9 @@ export abstract class PlayerCharacter extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setSize(config.bodyWidth, config.bodyHeight);
     body.setOffset(config.bodyOffsetX, config.bodyOffsetY);
+    if (config.idleAnimKey) {
+      this.play(config.idleAnimKey);
+    }
   }
 
   abstract get displayName(): string;
