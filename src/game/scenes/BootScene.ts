@@ -1,4 +1,5 @@
 import * as Phaser from "phaser";
+import { createPlaceholderTextures } from "../assets/placeholders";
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -6,7 +7,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload(): void {
-    // Assety dojdą w kolejnych fazach (sprite'y postaci, tła, audio).
+    createPlaceholderTextures(this);
   }
 
   create(): void {

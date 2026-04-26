@@ -43,8 +43,11 @@ export class MainMenuScene extends Phaser.Scene {
     const buttonY = cy + 30;
     const buttonGap = 70;
 
-    this.makeButton(cx, buttonY, "▶  PLAY (wkrótce)", () => {
-      this.cameras.main.flash(150, 252, 211, 77);
+    this.makeButton(cx, buttonY, "▶  PLAY", () => {
+      this.cameras.main.fade(250, 15, 10, 31);
+      this.cameras.main.once("camerafadeoutcomplete", () => {
+        this.scene.start("StorySelectScene");
+      });
     });
     this.makeButton(cx, buttonY + buttonGap, "   TRAINING (wkrótce)", () => {
       this.cameras.main.flash(150, 167, 139, 250);
