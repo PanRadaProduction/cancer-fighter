@@ -1,13 +1,22 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { DonateQR } from "@/components/DonateQR";
-import { PhaserGame } from "@/components/PhaserGame";
+import { PhaserGame, type LaunchMode } from "@/components/PhaserGame";
 
 export const metadata: Metadata = {
   title: "Cancer Fighter — Gra",
 };
 
-export default function PlayPage() {
+export default async function PlayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ mode?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const raw = Array.isArray(params.mode) ? params.mode[0] : params.mode;
+  const mode: LaunchMode | undefined =
+    raw === "story" || raw === "coop" ? raw : undefined;
+
   return (
     <main className="relative flex flex-1 items-center justify-center bg-slate-950 p-4 text-white sm:p-8">
       <Link
@@ -17,7 +26,7 @@ export default function PlayPage() {
         ← powrót
       </Link>
 
-      <PhaserGame />
+      <PhaserGame mode={mode} />
 
       <div className="pointer-events-auto absolute bottom-4 right-4 z-10 flex flex-col items-end gap-2">
         <DonateQR size={120} showCta={false} />

@@ -1,12 +1,15 @@
 import * as Phaser from "phaser";
 import { TEXTURES } from "../assets/placeholders";
 import { Boss, BOSS_SPECS, type BossSpec } from "../characters/Boss";
-import { Hope, HOPE_CONFIG } from "../characters/Hope";
+import { Brave } from "../characters/Brave";
+import { Hope } from "../characters/Hope";
+import { PlayerCharacter } from "../characters/PlayerCharacter";
 import { bgm } from "../audio/bgm";
 import { sfx } from "../audio/sfx";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
+import type { CharacterKey } from "./StorySelectScene";
 
-export type StageData = { stage?: 1 | 2 };
+export type StageData = { stage?: 1 | 2; character?: CharacterKey };
 
 const GROUND_Y = 640;
 
@@ -33,20 +36,31 @@ const STAGE_CONFIG: Record<
   },
 };
 
+function spawnPlayer(
+  scene: Phaser.Scene,
+  key: CharacterKey,
+  x: number,
+  y: number,
+): PlayerCharacter {
+  if (key === "brave") return new Brave(scene, x, y);
+  return new Hope(scene, x, y);
+}
+
 export class StageScene extends Phaser.Scene {
-  private hope!: Hope;
+  private player!: PlayerCharacter;
   private boss!: Boss;
   private currentStage: 1 | 2 = 1;
+  private characterKey: CharacterKey = "hope";
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private keyA!: Phaser.Input.Keyboard.Key;
   private keyS!: Phaser.Input.Keyboard.Key;
   private keySpace!: Phaser.Input.Keyboard.Key;
 
-  private hopeBar!: Phaser.GameObjects.Graphics;
+  private playerBar!: Phaser.GameObjects.Graphics;
   private bossBar!: Phaser.GameObjects.Graphics;
 
-  private hopeInvulnUntil = 0;
+  private playerInvulnUntil = 0;
   private finished = false;
 
   constructor() {
@@ -55,8 +69,9 @@ export class StageScene extends Phaser.Scene {
 
   init(data: StageData): void {
     this.currentStage = data.stage ?? 1;
+    this.characterKey = data.character ?? "hope";
     this.finished = false;
-    this.hopeInvulnUntil = 0;
+    this.playerInvulnUntil = 0;
   }
 
   create(): void {
@@ -97,12 +112,12 @@ export class StageScene extends Phaser.Scene {
       ground.create(x + 32, GROUND_Y + 16, stageCfg.groundTexture);
     }
 
-    this.hope = new Hope(this, 320, GROUND_Y);
-    this.physics.add.collider(this.hope, ground);
+    this.player = spawnPlayer(this, this.characterKey, 320, GROUND_Y);
+    this.physics.add.collider(this.player, ground);
 
     this.boss = new Boss(this, 950, GROUND_Y, spec);
 
-    this.add.text(40, 70, "NADZIEJA", {
+    this.add.text(40, 70, this.player.displayName.toUpperCase(), {
       fontFamily: "monospace",
       fontSize: "12px",
       color: "#fcd34d",
@@ -123,7 +138,7 @@ export class StageScene extends Phaser.Scene {
       Phaser.Input.Keyboard.KeyCodes.SPACE,
     );
 
-    this.hopeBar = this.add.graphics();
+    this.playerBar = this.add.graphics();
     this.bossBar = this.add.graphics();
 
     this.add
@@ -146,45 +161,47 @@ export class StageScene extends Phaser.Scene {
     if (this.finished) return;
 
     if (this.cursors.left?.isDown) {
-      this.hope.moveLeft();
+      this.player.moveLeft();
     } else if (this.cursors.right?.isDown) {
-      this.hope.moveRight();
+      this.player.moveRight();
     } else {
-      this.hope.stopHorizontal();
+      this.player.stopHorizontal();
     }
 
     if (
       Phaser.Input.Keyboard.JustDown(this.cursors.up!) ||
       Phaser.Input.Keyboard.JustDown(this.keySpace)
     ) {
-      this.hope.jump();
+      this.player.jump();
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.keyA)) {
-      const hb = this.hope.tryLightAttack(time);
-      if (hb) this.resolvePlayerAttack(hb, HOPE_CONFIG.lightDamage, false);
+      const hb = this.player.tryLightAttack(time);
+      if (hb) this.resolvePlayerAttack(hb, this.player.lightDamage, false);
     }
     if (Phaser.Input.Keyboard.JustDown(this.keyS)) {
-      const hb = this.hope.tryHeavyAttack(time);
-      if (hb) this.resolvePlayerAttack(hb, HOPE_CONFIG.heavyDamage, true);
+      const hb = this.player.tryHeavyAttack(time);
+      if (hb) this.resolvePlayerAttack(hb, this.player.heavyDamage, true);
     }
 
-    this.boss.tick(time, this.hope);
+    this.boss.tick(time, this.player);
 
-    const bossHit = this.boss.getActiveHitbox();
-    if (bossHit && time >= this.hopeInvulnUntil) {
-      const hopeRect = this.hopeRect();
-      if (Phaser.Geom.Intersects.RectangleToRectangle(bossHit, hopeRect)) {
-        this.hope.takeDamage(this.boss.spec.attackDamage);
-        this.hopeInvulnUntil = time + 700;
-        const knockX =
-          this.boss.x < this.hope.x ? 320 : -320;
-        this.hope.setVelocity(knockX, this.boss.spec.knockbackVelocity);
-        this.drawBars();
+    if (time >= this.playerInvulnUntil) {
+      const bossHits = this.boss.getActiveHitboxes();
+      const playerRect = this.playerRect();
+      for (const { rect, damage } of bossHits) {
+        if (Phaser.Geom.Intersects.RectangleToRectangle(rect, playerRect)) {
+          this.player.takeDamage(damage);
+          this.playerInvulnUntil = time + 700;
+          const knockX = this.boss.x < this.player.x ? 320 : -320;
+          this.player.setVelocity(knockX, this.boss.spec.knockbackVelocity);
+          this.drawBars();
+          break;
+        }
       }
     }
 
-    if (this.hope.hp <= 0) {
+    if (this.player.hp <= 0) {
       this.endStage(false);
       return;
     }
@@ -194,8 +211,8 @@ export class StageScene extends Phaser.Scene {
     }
   }
 
-  private hopeRect(): Phaser.Geom.Rectangle {
-    const body = this.hope.body as Phaser.Physics.Arcade.Body;
+  private playerRect(): Phaser.Geom.Rectangle {
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
     return new Phaser.Geom.Rectangle(body.x, body.y, body.width, body.height);
   }
 
@@ -204,6 +221,21 @@ export class StageScene extends Phaser.Scene {
     damage: number,
     heavy: boolean,
   ): void {
+    if (heavy) {
+      for (const c of this.boss.clones) {
+        const cloneRect = new Phaser.Geom.Rectangle(
+          c.sprite.x - this.boss.spec.width / 2,
+          c.sprite.y - this.boss.spec.height,
+          this.boss.spec.width,
+          this.boss.spec.height,
+        );
+        if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, cloneRect)) {
+          this.boss.crackClone(c);
+          return;
+        }
+      }
+    }
+
     const sb = this.boss.body as Phaser.Physics.Arcade.Body;
     const bossRect = new Phaser.Geom.Rectangle(sb.x, sb.y, sb.width, sb.height);
     if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, bossRect)) {
@@ -231,14 +263,14 @@ export class StageScene extends Phaser.Scene {
     const w = 200;
     const h = 14;
 
-    this.hopeBar.clear();
-    this.hopeBar.fillStyle(0x000000, 0.5);
-    this.hopeBar.fillRect(40, 86, w, h);
-    const hopePct = this.hope.hp / HOPE_CONFIG.maxHp;
-    this.hopeBar.fillStyle(0x22c55e, 1);
-    this.hopeBar.fillRect(40, 86, w * hopePct, h);
-    this.hopeBar.lineStyle(2, 0xffffff, 0.6);
-    this.hopeBar.strokeRect(40, 86, w, h);
+    this.playerBar.clear();
+    this.playerBar.fillStyle(0x000000, 0.5);
+    this.playerBar.fillRect(40, 86, w, h);
+    const playerPct = this.player.hp / this.player.maxHp;
+    this.playerBar.fillStyle(0x22c55e, 1);
+    this.playerBar.fillRect(40, 86, w * playerPct, h);
+    this.playerBar.lineStyle(2, 0xffffff, 0.6);
+    this.playerBar.strokeRect(40, 86, w, h);
 
     this.bossBar.clear();
     this.bossBar.fillStyle(0x000000, 0.5);
@@ -252,7 +284,7 @@ export class StageScene extends Phaser.Scene {
 
   private endStage(victory: boolean): void {
     this.finished = true;
-    this.hope.stopHorizontal();
+    this.player.stopHorizontal();
 
     if (victory) {
       sfx.playVictory();
@@ -296,7 +328,10 @@ export class StageScene extends Phaser.Scene {
     const delay = victory ? 2400 : 2200;
     this.time.delayedCall(delay, () => {
       if (victory && !isLastStage) {
-        this.scene.restart({ stage: 2 } satisfies StageData);
+        this.scene.restart({
+          stage: 2,
+          character: this.characterKey,
+        } satisfies StageData);
       } else {
         this.scene.start("MainMenuScene");
       }

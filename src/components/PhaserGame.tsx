@@ -3,7 +3,9 @@
 import { useEffect, useRef } from "react";
 import type * as Phaser from "phaser";
 
-export function PhaserGame() {
+export type LaunchMode = "story" | "coop";
+
+export function PhaserGame({ mode }: { mode?: LaunchMode }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
 
@@ -20,7 +22,11 @@ export function PhaserGame() {
       ]);
       if (cancelled || !containerRef.current) return;
       game = new PhaserLib.Game(createGameConfig(containerRef.current));
+      if (mode) game.registry.set("launchMode", mode);
       gameRef.current = game;
+      if (process.env.NODE_ENV !== "production") {
+        (window as unknown as { __game?: Phaser.Game }).__game = game;
+      }
     })();
 
     return () => {
@@ -30,7 +36,7 @@ export function PhaserGame() {
       }
       gameRef.current = null;
     };
-  }, []);
+  }, [mode]);
 
   return (
     <div

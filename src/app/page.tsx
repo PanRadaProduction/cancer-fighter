@@ -56,52 +56,32 @@ export default function Home() {
           </p>
         </div>
 
-        {/* CHARACTER ROSTER */}
+        {/* MODE SELECT */}
         <section
-          aria-label="Bohaterowie i bossowie"
-          className="font-arcade flex w-full flex-col gap-4"
+          aria-label="Tryby gry"
+          className="font-arcade flex w-full max-w-3xl flex-col gap-4"
         >
           <h2 className="text-center text-[10px] tracking-[0.4em] text-cyan-200/70 sm:text-xs">
-            — SELECT YOUR FIGHTER —
+            — WYBIERZ TRYB —
           </h2>
-          <div className="grid grid-cols-3 items-end gap-3 sm:gap-6">
-            <RosterCard
-              role="HERO"
-              name="NADZIEJA"
+          <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 sm:gap-6">
+            <ModeCard
+              href="/play?mode=story"
+              role="STORY"
+              name="1 GRACZ"
               accent="cyan"
-              status="READY"
               spriteClass="hope-sprite-frame"
-              description="Wiara · Światło"
+              description="Solo vs bossowie"
             />
-            <RosterCard
-              role="BOSS · 1"
-              name="LORD STRES"
+            <ModeCard
+              href="/play?mode=coop"
+              role="CO-OP"
+              name="2 GRACZE"
               accent="magenta"
-              status="LOCKED"
-              description="Strach · Presja"
-            />
-            <RosterCard
-              role="BOSS · 2"
-              name="PANI CIEMNOŚĆ"
-              accent="amber"
-              status="LOCKED"
-              description="Smutek · Pustka"
+              description="Duet bohaterów"
             />
           </div>
         </section>
-
-        {/* PRESS START */}
-        <Link
-          href="/play"
-          className="group font-arcade relative flex flex-col items-center gap-3 px-6 py-4 outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
-        >
-          <span className="neon-amber blink text-base sm:text-xl">
-            ▶ PRESS START
-          </span>
-          <span className="text-[10px] tracking-[0.4em] text-white/55 group-hover:text-white sm:text-xs">
-            CLICK · TAP · ZAGRAJ
-          </span>
-        </Link>
 
         {/* INSERT COIN — donation panel */}
         <section
@@ -148,37 +128,43 @@ export default function Home() {
   );
 }
 
-type RosterAccent = "cyan" | "magenta" | "amber";
+type ModeAccent = "cyan" | "magenta";
 
-function RosterCard({
+function ModeCard({
+  href,
   role,
   name,
   accent,
-  status,
   spriteClass,
   description,
 }: {
+  href: string;
   role: string;
   name: string;
-  accent: RosterAccent;
-  status: "READY" | "LOCKED";
+  accent: ModeAccent;
   spriteClass?: string;
   description: string;
 }) {
   const accentMap = {
-    cyan: { ring: "ring-cyan-400/60", glow: "neon-cyan", chip: "#6df6ff" },
+    cyan: {
+      ring: "ring-cyan-400/60",
+      hoverRing: "hover:ring-cyan-300 focus-visible:ring-cyan-300",
+      glow: "neon-cyan",
+      chip: "#6df6ff",
+    },
     magenta: {
       ring: "ring-fuchsia-400/60",
+      hoverRing: "hover:ring-fuchsia-300 focus-visible:ring-fuchsia-300",
       glow: "neon-magenta",
       chip: "#ff2bd6",
     },
-    amber: { ring: "ring-amber-300/60", glow: "neon-amber", chip: "#ffd34d" },
   } as const;
   const a = accentMap[accent];
-  const locked = status === "LOCKED";
   return (
-    <div
-      className={`relative flex flex-col items-center gap-2 rounded-md bg-[#0d0524]/70 px-2 pb-3 pt-2 ring-1 sm:px-4 sm:pt-3 ${a.ring}`}
+    <Link
+      href={href}
+      aria-label={`${role} — ${name}`}
+      className={`group relative flex flex-col items-center gap-2 rounded-md bg-[#0d0524]/70 px-3 pb-4 pt-3 ring-1 outline-none transition-transform sm:px-4 sm:pt-4 ${a.ring} ${a.hoverRing} hover:-translate-y-0.5 hover:ring-2 focus-visible:ring-2`}
     >
       <span
         className={`font-arcade absolute -top-2 left-1/2 -translate-x-1/2 rounded-sm bg-[#04020e] px-2 py-0.5 text-[8px] tracking-[0.3em] ${a.glow}`}
@@ -186,43 +172,38 @@ function RosterCard({
         {role}
       </span>
       <div
-        className={`relative mt-3 flex h-32 w-full items-end justify-center overflow-hidden rounded-sm sm:h-40 ${
-          locked ? "" : ""
-        }`}
+        className="relative mt-3 flex h-36 w-full items-end justify-center overflow-hidden rounded-sm sm:h-44"
         style={{
           background: `linear-gradient(to bottom, transparent 0%, ${a.chip}22 100%)`,
         }}
       >
         {spriteClass ? (
-          <div className={`bob pixelated ${spriteClass}`} aria-hidden />
+          <div className={`pixelated ${spriteClass}`} aria-hidden />
         ) : (
-          <div
-            className="font-arcade pixelated flex h-24 w-24 items-center justify-center text-3xl sm:h-28 sm:w-28"
-            style={{
-              background: `repeating-linear-gradient(45deg, ${a.chip}33 0, ${a.chip}33 4px, transparent 4px, transparent 8px)`,
-              border: `2px solid ${a.chip}`,
-              color: a.chip,
-              textShadow: `0 0 8px ${a.chip}`,
-            }}
-            aria-hidden
-          >
-            ?
+          <div className="flex items-end gap-3" aria-hidden>
+            <div className="pixelated hope-sprite-frame" />
+            <div
+              className="pixelated"
+              style={{
+                width: 96,
+                height: 144,
+                background: `repeating-linear-gradient(45deg, ${a.chip}33 0, ${a.chip}33 4px, transparent 4px, transparent 8px)`,
+                border: `2px solid ${a.chip}`,
+                boxShadow: `0 0 12px ${a.chip}`,
+              }}
+            />
           </div>
         )}
       </div>
       <p className={`font-arcade text-[10px] tracking-[0.2em] sm:text-xs ${a.glow}`}>
         {name}
       </p>
-      <p className="font-crt text-center text-sm text-white/70 sm:text-base">
+      <p className="font-crt text-center text-sm text-white/75 sm:text-base">
         {description}
       </p>
-      <span
-        className={`font-arcade text-[8px] tracking-[0.3em] sm:text-[9px] ${
-          locked ? "text-white/35" : "text-emerald-300"
-        }`}
-      >
-        {locked ? "✕ LOCKED" : "✓ READY"}
+      <span className="font-arcade text-[9px] tracking-[0.35em] text-amber-200/80 sm:text-[10px]">
+        ▶ ZAGRAJ
       </span>
-    </div>
+    </Link>
   );
 }

@@ -20,6 +20,8 @@ export const HOPE_CONFIG: PlayerConfig = {
   displayWidth: 96,
   displayHeight: 144,
   idleAnimKey: "hope-idle",
+  lightAnimKey: "hope-light",
+  heavyAnimKey: "hope-heavy",
 };
 
 export class Hope extends PlayerCharacter {

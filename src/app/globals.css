@@ -218,29 +218,27 @@ body {
     0 0 60px rgba(255, 43, 214, 0.25);
 }
 
-/* Sprite frame extraction: show only frame 0 (96x144) of horizontal sheet (384x144) */
+/* Sprite frame extraction from horizontal sheet (480x144, 5 frames @ 96px).
+ * Cycle only idle frames 0, 2, 3 — skip action poses (kick at frame 1, magic at frame 4). */
 .hope-sprite-frame {
   background-image: url("/sprites/hope-idle.png");
   background-repeat: no-repeat;
   background-position: 0 0;
-  background-size: 384px 144px;
+  background-size: 480px 144px;
   width: 96px;
   height: 144px;
   image-rendering: pixelated;
-  animation: hope-cycle 1s steps(1) infinite;
+  animation: hope-idle-cycle 1.2s steps(1) infinite;
 }
 
-@keyframes hope-cycle {
+@keyframes hope-idle-cycle {
   0% {
     background-position: 0 0;
   }
-  25% {
-    background-position: -96px 0;
-  }
-  50% {
+  33.333% {
     background-position: -192px 0;
   }
-  75% {
+  66.666% {
     background-position: -288px 0;
   }
 }

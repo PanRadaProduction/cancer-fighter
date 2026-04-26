@@ -7,10 +7,18 @@ import { PlayerCharacter } from "../characters/PlayerCharacter";
 import { bgm } from "../audio/bgm";
 import { sfx } from "../audio/sfx";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
+import type { CharacterKey } from "./StorySelectScene";
 
 const GROUND_Y = 640;
 const BOSS_HP_MULTIPLIER = 2.4;
 const INVULN_MS = 700;
+
+type CoopCharacter = Exclude<CharacterKey, "wise">;
+
+export type CoopData = {
+  p1Character?: CoopCharacter;
+  p2Character?: CoopCharacter;
+};
 
 type ControlMap = {
   left: Phaser.Input.Keyboard.Key;
@@ -21,30 +29,45 @@ type ControlMap = {
   altJump?: Phaser.Input.Keyboard.Key;
 };
 
+function spawnPlayer(
+  scene: Phaser.Scene,
+  key: CoopCharacter,
+  x: number,
+  y: number,
+): PlayerCharacter {
+  if (key === "brave") return new Brave(scene, x, y);
+  return new Hope(scene, x, y);
+}
+
 export class CoopScene extends Phaser.Scene {
-  private hope!: Hope;
-  private brave!: Brave;
+  private p1!: PlayerCharacter;
+  private p2!: PlayerCharacter;
   private boss!: Boss;
 
-  private p1!: ControlMap;
-  private p2!: ControlMap;
+  private p1Key: CoopCharacter = "hope";
+  private p2Key: CoopCharacter = "brave";
 
-  private hopeBar!: Phaser.GameObjects.Graphics;
-  private braveBar!: Phaser.GameObjects.Graphics;
+  private p1Controls!: ControlMap;
+  private p2Controls!: ControlMap;
+
+  private p1Bar!: Phaser.GameObjects.Graphics;
+  private p2Bar!: Phaser.GameObjects.Graphics;
   private bossBar!: Phaser.GameObjects.Graphics;
 
-  private hopeInvulnUntil = 0;
-  private braveInvulnUntil = 0;
+  private p1InvulnUntil = 0;
+  private p2InvulnUntil = 0;
   private finished = false;
 
   constructor() {
     super({ key: "CoopScene" });
   }
 
-  init(): void {
+  init(data: CoopData): void {
+    this.p1Key = data.p1Character ?? "hope";
+    this.p2Key = data.p2Character ?? "brave";
     this.finished = false;
-    this.hopeInvulnUntil = 0;
-    this.braveInvulnUntil = 0;
+    this.p1InvulnUntil = 0;
+    this.p2InvulnUntil = 0;
   }
 
   create(): void {
@@ -69,10 +92,10 @@ export class CoopScene extends Phaser.Scene {
       ground.create(x + 32, GROUND_Y + 16, TEXTURES.ground);
     }
 
-    this.hope = new Hope(this, 260, GROUND_Y);
-    this.brave = new Brave(this, 460, GROUND_Y);
-    this.physics.add.collider(this.hope, ground);
-    this.physics.add.collider(this.brave, ground);
+    this.p1 = spawnPlayer(this, this.p1Key, 260, GROUND_Y);
+    this.p2 = spawnPlayer(this, this.p2Key, 460, GROUND_Y);
+    this.physics.add.collider(this.p1, ground);
+    this.physics.add.collider(this.p2, ground);
 
     const baseSpec = BOSS_SPECS.stress;
     const coopSpec = {
@@ -83,7 +106,7 @@ export class CoopScene extends Phaser.Scene {
 
     const KC = Phaser.Input.Keyboard.KeyCodes;
     const kb = this.input.keyboard!;
-    this.p1 = {
+    this.p1Controls = {
       left: kb.addKey(KC.A),
       right: kb.addKey(KC.D),
       up: kb.addKey(KC.W),
@@ -91,7 +114,7 @@ export class CoopScene extends Phaser.Scene {
       light: kb.addKey(KC.F),
       heavy: kb.addKey(KC.G),
     };
-    this.p2 = {
+    this.p2Controls = {
       left: kb.addKey(KC.LEFT),
       right: kb.addKey(KC.RIGHT),
       up: kb.addKey(KC.UP),
@@ -99,16 +122,26 @@ export class CoopScene extends Phaser.Scene {
       heavy: kb.addKey(KC.M),
     };
 
-    this.add.text(40, 60, "P1: NADZIEJA — WASD ruch/skok • F lekki • G silny", {
-      fontFamily: "monospace",
-      fontSize: "11px",
-      color: "#fde68a",
-    });
-    this.add.text(40, 78, "P2: ODWAGA — ← → ↑ ruch/skok • N lekki • M silny", {
-      fontFamily: "monospace",
-      fontSize: "11px",
-      color: "#fca5a5",
-    });
+    this.add.text(
+      40,
+      60,
+      `P1: ${this.p1.displayName.toUpperCase()} — WASD ruch/skok • F lekki • G silny`,
+      {
+        fontFamily: "monospace",
+        fontSize: "11px",
+        color: "#fde68a",
+      },
+    );
+    this.add.text(
+      40,
+      78,
+      `P2: ${this.p2.displayName.toUpperCase()} — ← → ↑ ruch/skok • N lekki • M silny`,
+      {
+        fontFamily: "monospace",
+        fontSize: "11px",
+        color: "#fca5a5",
+      },
+    );
 
     this.add
       .text(GAME_WIDTH - 240, 60, this.boss.spec.name, {
@@ -118,8 +151,8 @@ export class CoopScene extends Phaser.Scene {
       })
       .setOrigin(0, 0);
 
-    this.hopeBar = this.add.graphics();
-    this.braveBar = this.add.graphics();
+    this.p1Bar = this.add.graphics();
+    this.p2Bar = this.add.graphics();
     this.bossBar = this.add.graphics();
 
     this.add
@@ -141,37 +174,37 @@ export class CoopScene extends Phaser.Scene {
   update(time: number): void {
     if (this.finished) return;
 
-    if (this.hope.hp > 0) {
-      this.handleInput(this.hope, this.p1, time);
+    if (this.p1.hp > 0) {
+      this.handleInput(this.p1, this.p1Controls, time);
     } else {
-      this.hope.stopHorizontal();
+      this.p1.stopHorizontal();
     }
-    if (this.brave.hp > 0) {
-      this.handleInput(this.brave, this.p2, time);
+    if (this.p2.hp > 0) {
+      this.handleInput(this.p2, this.p2Controls, time);
     } else {
-      this.brave.stopHorizontal();
+      this.p2.stopHorizontal();
     }
 
     const target = this.closestAlivePlayer();
     if (target) {
       this.boss.tick(time, target);
 
-      const bossHit = this.boss.getActiveHitbox();
-      if (bossHit) {
-        if (this.hope.hp > 0 && time >= this.hopeInvulnUntil) {
-          if (this.intersects(bossHit, this.hope)) {
-            this.applyBossDamageTo(this.hope, time, "hope");
+      const bossHits = this.boss.getActiveHitboxes();
+      for (const { rect, damage } of bossHits) {
+        if (this.p1.hp > 0 && time >= this.p1InvulnUntil) {
+          if (this.intersects(rect, this.p1)) {
+            this.applyBossDamageTo(this.p1, time, "p1", damage);
           }
         }
-        if (this.brave.hp > 0 && time >= this.braveInvulnUntil) {
-          if (this.intersects(bossHit, this.brave)) {
-            this.applyBossDamageTo(this.brave, time, "brave");
+        if (this.p2.hp > 0 && time >= this.p2InvulnUntil) {
+          if (this.intersects(rect, this.p2)) {
+            this.applyBossDamageTo(this.p2, time, "p2", damage);
           }
         }
       }
     }
 
-    if (this.hope.hp === 0 && this.brave.hp === 0) {
+    if (this.p1.hp === 0 && this.p2.hp === 0) {
       this.endGame(false);
       return;
     }
@@ -217,6 +250,22 @@ export class CoopScene extends Phaser.Scene {
     heavy: boolean,
   ): void {
     if (this.boss.isDead()) return;
+
+    if (heavy) {
+      for (const c of this.boss.clones) {
+        const cloneRect = new Phaser.Geom.Rectangle(
+          c.sprite.x - this.boss.spec.width / 2,
+          c.sprite.y - this.boss.spec.height,
+          this.boss.spec.width,
+          this.boss.spec.height,
+        );
+        if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, cloneRect)) {
+          this.boss.crackClone(c);
+          return;
+        }
+      }
+    }
+
     const sb = this.boss.body as Phaser.Physics.Arcade.Body;
     const bossRect = new Phaser.Geom.Rectangle(sb.x, sb.y, sb.width, sb.height);
     if (Phaser.Geom.Intersects.RectangleToRectangle(hitbox, bossRect)) {
@@ -239,11 +288,12 @@ export class CoopScene extends Phaser.Scene {
   private applyBossDamageTo(
     player: PlayerCharacter,
     time: number,
-    who: "hope" | "brave",
+    who: "p1" | "p2",
+    damage: number,
   ): void {
-    player.takeDamage(this.boss.spec.attackDamage);
-    if (who === "hope") this.hopeInvulnUntil = time + INVULN_MS;
-    else this.braveInvulnUntil = time + INVULN_MS;
+    player.takeDamage(damage);
+    if (who === "p1") this.p1InvulnUntil = time + INVULN_MS;
+    else this.p2InvulnUntil = time + INVULN_MS;
 
     const knockX = this.boss.x < player.x ? 320 : -320;
     player.setVelocity(knockX, this.boss.spec.knockbackVelocity);
@@ -252,8 +302,8 @@ export class CoopScene extends Phaser.Scene {
 
   private closestAlivePlayer(): PlayerCharacter | null {
     const alive: PlayerCharacter[] = [];
-    if (this.hope.hp > 0) alive.push(this.hope);
-    if (this.brave.hp > 0) alive.push(this.brave);
+    if (this.p1.hp > 0) alive.push(this.p1);
+    if (this.p2.hp > 0) alive.push(this.p2);
     if (alive.length === 0) return null;
     let best = alive[0];
     let bestDist = Math.abs(best.x - this.boss.x);
@@ -285,21 +335,21 @@ export class CoopScene extends Phaser.Scene {
     const w = 200;
     const h = 12;
 
-    this.hopeBar.clear();
-    this.hopeBar.fillStyle(0x000000, 0.5);
-    this.hopeBar.fillRect(40, 96, w, h);
-    this.hopeBar.fillStyle(0x22c55e, 1);
-    this.hopeBar.fillRect(40, 96, w * (this.hope.hp / this.hope.maxHp), h);
-    this.hopeBar.lineStyle(2, 0xffffff, 0.6);
-    this.hopeBar.strokeRect(40, 96, w, h);
+    this.p1Bar.clear();
+    this.p1Bar.fillStyle(0x000000, 0.5);
+    this.p1Bar.fillRect(40, 96, w, h);
+    this.p1Bar.fillStyle(0x22c55e, 1);
+    this.p1Bar.fillRect(40, 96, w * (this.p1.hp / this.p1.maxHp), h);
+    this.p1Bar.lineStyle(2, 0xffffff, 0.6);
+    this.p1Bar.strokeRect(40, 96, w, h);
 
-    this.braveBar.clear();
-    this.braveBar.fillStyle(0x000000, 0.5);
-    this.braveBar.fillRect(40, 116, w, h);
-    this.braveBar.fillStyle(0xfb923c, 1);
-    this.braveBar.fillRect(40, 116, w * (this.brave.hp / this.brave.maxHp), h);
-    this.braveBar.lineStyle(2, 0xffffff, 0.6);
-    this.braveBar.strokeRect(40, 116, w, h);
+    this.p2Bar.clear();
+    this.p2Bar.fillStyle(0x000000, 0.5);
+    this.p2Bar.fillRect(40, 116, w, h);
+    this.p2Bar.fillStyle(0xfb923c, 1);
+    this.p2Bar.fillRect(40, 116, w * (this.p2.hp / this.p2.maxHp), h);
+    this.p2Bar.lineStyle(2, 0xffffff, 0.6);
+    this.p2Bar.strokeRect(40, 116, w, h);
 
     this.bossBar.clear();
     this.bossBar.fillStyle(0x000000, 0.5);
@@ -317,8 +367,8 @@ export class CoopScene extends Phaser.Scene {
 
   private endGame(victory: boolean): void {
     this.finished = true;
-    this.hope.stopHorizontal();
-    this.brave.stopHorizontal();
+    this.p1.stopHorizontal();
+    this.p2.stopHorizontal();
 
     if (victory) sfx.playVictory();
     else sfx.playDefeat();

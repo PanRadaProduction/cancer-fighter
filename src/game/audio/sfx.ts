@@ -90,6 +90,111 @@ class SfxPlayer {
     });
   }
 
+  playSlamCharge(): void {
+    this.tone({
+      type: "sawtooth",
+      from: 200,
+      to: 80,
+      duration: 0.6,
+      gain: 0.1,
+    });
+  }
+
+  playSlamImpact(): void {
+    this.noiseBurst(0.18, 0.16);
+    this.tone({
+      type: "triangle",
+      from: 90,
+      to: 50,
+      duration: 0.25,
+      gain: 0.12,
+    });
+  }
+
+  playProjectileFire(): void {
+    for (let i = 0; i < 3; i++) {
+      this.scheduleTone(
+        {
+          type: "square",
+          from: 660,
+          to: 330,
+          duration: 0.1,
+          gain: 0.06,
+        },
+        i * 0.06,
+      );
+    }
+  }
+
+  playBeamCharge(): void {
+    this.tone({
+      type: "sawtooth",
+      from: 200,
+      to: 800,
+      duration: 1.4,
+      gain: 0.07,
+    });
+  }
+
+  playBeamFire(): void {
+    this.noiseBurst(0.4, 0.14);
+    this.tone({
+      type: "sine",
+      from: 90,
+      to: 60,
+      duration: 0.4,
+      gain: 0.13,
+    });
+  }
+
+  playCloneSpawn(): void {
+    const freqs = [400, 420, 380];
+    freqs.forEach((f, i) => {
+      this.scheduleTone(
+        {
+          type: "triangle",
+          from: f,
+          to: f,
+          duration: 0.35,
+          gain: 0.06,
+        },
+        i * 0.04,
+      );
+    });
+  }
+
+  playEnrageRoar(): void {
+    this.tone({
+      type: "sawtooth",
+      from: 300,
+      to: 80,
+      duration: 0.6,
+      gain: 0.12,
+    });
+    this.noiseBurst(0.4, 0.12);
+  }
+
+  playWarningBeep(): void {
+    this.tone({
+      type: "square",
+      from: 880,
+      to: 880,
+      duration: 0.08,
+      gain: 0.05,
+    });
+  }
+
+  playCloneCrack(): void {
+    this.noiseBurst(0.06, 0.1);
+    this.tone({
+      type: "triangle",
+      from: 1200,
+      to: 600,
+      duration: 0.05,
+      gain: 0.06,
+    });
+  }
+
   private getCtx(): AudioContext | null {
     if (typeof window === "undefined") return null;
     if (!this.ctx) {

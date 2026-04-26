@@ -21,6 +21,10 @@ export type PlayerConfig = {
   displayHeight: number;
   /** Optional looping idle animation key (must be registered in BootScene). */
   idleAnimKey?: string;
+  /** Optional one-shot light-attack animation key. Plays then chains back to idle. */
+  lightAnimKey?: string;
+  /** Optional one-shot heavy-attack animation key. Plays then chains back to idle. */
+  heavyAnimKey?: string;
 };
 
 export abstract class PlayerCharacter extends Phaser.Physics.Arcade.Sprite {
@@ -90,6 +94,7 @@ export abstract class PlayerCharacter extends Phaser.Physics.Arcade.Sprite {
     if (now - this.lastLightAt < this.config.lightCooldownMs) return null;
     this.lastLightAt = now;
     sfx.playLightAttack();
+    this.playAttackAnim(this.config.lightAnimKey);
     return this.attackHitbox(this.config.attackRange);
   }
 
@@ -97,7 +102,16 @@ export abstract class PlayerCharacter extends Phaser.Physics.Arcade.Sprite {
     if (now - this.lastHeavyAt < this.config.heavyCooldownMs) return null;
     this.lastHeavyAt = now;
     sfx.playHeavyAttack();
+    this.playAttackAnim(this.config.heavyAnimKey);
     return this.attackHitbox(this.config.attackRange + 30);
+  }
+
+  private playAttackAnim(animKey: string | undefined): void {
+    if (!animKey) return;
+    this.play(animKey);
+    if (this.config.idleAnimKey) {
+      this.chain(this.config.idleAnimKey);
+    }
   }
 
   takeDamage(amount: number): void {
